@@ -136,15 +136,16 @@
     </div>
 
     <div class="hero-bar wrap" data-enter style="--d:6">
+      <div class="actions" data-actions="buy telegram x chart" data-hero-actions><!-- built from config.links --></div>
+      <div class="ca-row">
       <div class="ca" role="group" aria-label="Official contract address">
         <span class="ca-label mono">CA</span>
         <span class="ca-net mono" data-network>[Network TBD]</span>
         <code class="ca-value" data-contract>Not published yet</code>
         <button class="ca-copy mono" type="button" data-copy-contract>Copy</button>
       </div>
-      <ul class="quick-links mono" data-quick-links aria-label="Official links">
-        <!-- built from config.links -->
-      </ul>
+      <a class="how-link mono" href="#buy">New here? How to buy ↓</a>
+      </div>
     </div>
   </section>
 
@@ -200,7 +201,8 @@
       <div class="find-text">
         <h2 class="sec-title" id="find-title" data-cfg="community.title" data-reveal>Find the others.</h2>
         <p class="find-copy" data-cfg="community.copy" data-reveal>Deane’s people are already online. Tear a tab.</p>
-        <p class="find-note mono" data-preview-only data-reveal>Tabs are placeholders until the official links are posted.</p>
+        <div class="actions actions-find" data-actions="telegram x" data-reveal><!-- built from config.links --></div>
+        <p class="find-note mono" data-preview-only data-reveal>Links are placeholders until the official accounts are posted.</p>
       </div>
 
       <article class="poster" data-reveal aria-label="Have you seen Deane? poster">
@@ -261,6 +263,11 @@
     </form>
   </div>
 </dialog>
+
+<!-- Phone dock: the two main actions, pinned once the hero buttons scroll away. -->
+<div class="dock" data-dock aria-label="Quick actions" role="region">
+  <div class="dock-inner" data-actions="buy telegram" data-short></div>
+</div>
 
 <div class="toast mono" role="status" aria-live="polite" data-toast hidden></div>
 

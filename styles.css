@@ -143,6 +143,7 @@ section[id] { scroll-margin-top: var(--nav-h); }
 .btn-buy:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
 .btn-buy:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
 .btn-buy-lg { min-height: 60px; padding: 0 28px; font-size: 1.25rem; }
+.nav-buy { min-height: 50px; padding: 0 22px; font-size: 1rem; }
 
 /* ───────────── Nav ───────────── */
 .nav {
@@ -457,26 +458,6 @@ body.menu-open { overflow: hidden; }
 }
 .ca-copy:hover { background: var(--ink); color: var(--yellow); }
 .ca-copy:focus-visible { outline-offset: -6px; outline-color: var(--blue); }
-.quick-links { display: flex; flex-wrap: wrap; gap: 4px 22px; margin: 0; padding: 0; list-style: none; }
-.quick-links a, .quick-links button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-family: var(--mono);
-  font-weight: 700;
-  font-size: var(--t-sm);
-  text-transform: uppercase;
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 5px;
-  cursor: pointer;
-}
-.quick-links .quick-guide { color: var(--yellow); }
-.quick-links a:hover, .quick-links button:hover { text-decoration-color: var(--yellow); color: var(--yellow); }
 .tbd {
   padding: 2px 6px;
   background: var(--ink);
@@ -485,6 +466,86 @@ body.menu-open { overflow: hidden; }
   text-decoration: none;
   display: inline-block;
 }
+
+/* ───────────── Action buttons (hero, community, dock) ───────────── */
+.hero-bar { flex-direction: column; align-items: stretch; gap: 22px; }
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 16px;
+}
+.act {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 0 26px;
+  border: var(--line) solid var(--ink);
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+  font-family: var(--sans);
+  font-stretch: 125%;
+  font-weight: 900;
+  font-size: clamp(1.05rem, .9rem + .5vw, 1.35rem);
+  letter-spacing: -.01em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform .15s var(--ease), box-shadow .15s var(--ease), background-color .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.act svg { width: 1.15em; height: 1.15em; flex: none; }
+.act:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 var(--ink); }
+.act:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 var(--ink); }
+.act:focus-visible { outline-color: var(--yellow); outline-offset: 5px; }
+.act-short { display: none; }
+.act .tbd { font-family: var(--mono); font-stretch: 100%; letter-spacing: .02em; }
+.act-buy {
+  min-height: 80px;
+  padding: 0 38px;
+  background: var(--yellow);
+  font-size: clamp(1.4rem, 1rem + 1.4vw, 2.2rem);
+  letter-spacing: -.02em;
+}
+.act-buy:hover { background: #ffe36b; }
+.act-buy svg { order: 2; transition: transform .25s var(--spring); }
+.act-buy:hover svg { transform: translateX(5px); }
+.act-telegram:hover, .act-x:hover { background: #fff; }
+.act-chart {
+  min-height: 56px;
+  background: transparent;
+  color: var(--cream);
+  border-color: var(--cream);
+  box-shadow: none;
+  font-size: clamp(.95rem, .85rem + .3vw, 1.1rem);
+}
+.act-chart:hover { background: var(--cream); color: var(--ink); box-shadow: none; transform: none; }
+.act-chart .tbd { background: var(--cream); color: var(--ink); }
+
+.ca-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+.how-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 700;
+  font-size: var(--t-sm);
+  color: var(--yellow);
+  text-transform: uppercase;
+  text-underline-offset: 5px;
+  text-decoration-thickness: 2px;
+}
+.how-link:hover { color: var(--cream); }
+
+.actions-find { margin-top: 32px; }
+.actions-find .act { min-height: 72px; font-size: clamp(1.2rem, 1rem + .8vw, 1.6rem); }
+
+/* Phone dock, off by default; only phones and small tablets use it. */
+.dock { display: none; }
 
 /* Entrance: letters rise, then Deane, then the sticker gets slapped on.
    Runs only once JS has marked the page ready. */
@@ -676,7 +737,9 @@ body.menu-open { overflow: hidden; }
 }
 .step-ca-value { flex: 1 1 auto; display: flex; align-items: center; padding: 0 14px; font-family: var(--mono); font-size: var(--t-sm); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .step-ca-value.is-placeholder { color: color-mix(in srgb, var(--cream) 60%, var(--ink)); }
-.step-buy { margin-top: 10px; }
+.step-buy { margin-top: 12px; min-height: 60px; padding: 0 26px; font-size: 1.15rem; box-shadow: 5px 5px 0 var(--cream); border-color: var(--cream); }
+.step-buy:hover { box-shadow: 7px 7px 0 var(--cream); }
+.step-buy:active { box-shadow: 1px 1px 0 var(--cream); }
 .copy-btn {
   min-height: 44px;
   padding: 0 14px;
@@ -988,8 +1051,31 @@ body.menu-open { overflow: hidden; }
   :root { --nav-h: 60px; }
   .nav-links { display: none; }
   .nav-inner { gap: 12px; }
-  .nav-buy { margin-left: auto; padding: 0 12px; font-size: .8125rem; box-shadow: 3px 3px 0 var(--ink); }
-  .nav-toggle { display: inline-flex; margin-left: 0; }
+  .nav-buy { display: none; }
+  .nav-toggle { display: inline-flex; margin-left: auto; }
+
+  .dock {
+    display: block;
+    position: fixed;
+    z-index: 40;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    background: var(--ink);
+    border-top: var(--line) solid var(--ink);
+    transform: translateY(110%);
+    transition: transform .35s var(--ease);
+  }
+  .dock.is-shown { transform: none; }
+  .dock-inner { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 10px; }
+  .dock .act { min-height: 58px; padding: 0 10px; gap: 8px; box-shadow: none; border-color: var(--cream); font-size: 1.05rem; font-stretch: 100%; }
+  .dock .act-buy { font-size: 1.2rem; border-color: var(--yellow); }
+  .dock .act:active { transform: scale(.97); }
+  .dock .act .tbd { display: none; }
+  body.dock-on .toast { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .footer { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  body.menu-open .dock { transform: translateY(110%); }
   .receipt { position: relative; top: auto; }
 
   .who-grid, .buy-grid, .find-grid { grid-template-columns: minmax(0, 1fr); }
@@ -1016,6 +1102,14 @@ body.menu-open { overflow: hidden; }
 }
 
 @media (max-width: 560px) {
+  .actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  .actions .act { width: 100%; padding: 0 12px; }
+  .actions .act-buy { grid-column: 1 / -1; min-height: 76px; }
+  .actions .act-telegram { grid-column: 1 / -1; }
+  .hero-bar .act-x, .actions .act-chart { min-height: 56px; }
+  .hero-bar .act-x .act-text { display: none; }
+  .hero-bar .act-x .act-short { display: inline; }
+  .actions-find { grid-template-columns: minmax(0, 1fr); }
   .nav-toggle-label { display: none; }
   .nav-toggle { padding: 0 9px; min-width: 44px; justify-content: center; }
   .ca { flex-wrap: wrap; }
@@ -1035,6 +1129,14 @@ body.menu-open { overflow: hidden; }
   .receipt { width: min(380px, 94%); transform: rotate(-1.5deg); }
   .tab { height: 188px; }
   .tab-name { font-size: .875rem; }
+}
+
+/* Very narrow phones (320–360px): same buttons, a touch smaller. */
+@media (max-width: 360px) {
+  .act { font-size: .95rem; gap: 8px; }
+  .actions .act-buy { font-size: 1.3rem; padding: 0 12px; }
+  .actions .act-chart svg, .actions .act-telegram svg, .dock .act svg { display: none; }
+  .dock .act { font-size: .95rem; }
 }
 
 /* ───────────── Reduced motion ───────────── */

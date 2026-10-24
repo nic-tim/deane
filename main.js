@@ -82,7 +82,7 @@
 
     buildWordmark();
     buildMarquee();
-    buildQuickLinks();
+    buildActions();
     buildNotList();
     buildContract();
     buildSteps();
@@ -148,17 +148,42 @@
     return node;
   }
 
-  function buildQuickLinks() {
-    var list = $('[data-quick-links]');
-    if (!list) return;
-    list.textContent = '';
-    list.appendChild(el('li', {}, [el('a', { href: '#buy', class: 'quick-guide', text: 'How to buy ↓' })]));
-    ['chart', 'x', 'telegram'].forEach(function (key) {
-      var link = (cfg.links || {})[key];
-      if (!link) return;
-      var kids = [document.createTextNode(link.label + (link.url ? ' ↗' : ''))];
-      if (!link.url) kids.push(el('span', { class: 'tbd', text: 'TBD' }));
-      list.appendChild(el('li', {}, [linkNode(key, '', kids)]));
+  // The big action buttons. One builder for every place they appear (hero,
+  // community, phone dock), so labels, links and placeholder states match.
+  var ICONS = {
+    buy: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"/></svg>',
+    telegram: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4 2.5 11.2l5.8 2.1L18 7.5l-7.6 7.2.3 5.3 3.2-3.6 4.4 3.3z" fill="currentColor"/></svg>',
+    x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 16M20 4 4 20" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="square"/></svg>',
+    chart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18l5-6 4 3 7-9" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M3 21h18" stroke="currentColor" stroke-width="2"/></svg>',
+  };
+  function actionButton(key, short) {
+    var link = (cfg.links || {})[key];
+    if (!link) return null;
+    var text = short ? link.label : (link.cta || link.label);
+    var kids = [el('span', { class: 'act-text', text: text })];
+    // A short form ("X" for "Follow on X") for tight phone layouts.
+    if (!short && link.cta && link.cta !== link.label) kids.push(el('span', { class: 'act-short', 'aria-hidden': 'true', text: link.label }));
+    if (!link.url) kids.push(el('span', { class: 'tbd', text: 'TBD' }));
+    var cls = 'act act-' + key;
+    var node;
+    if (key === 'buy') {
+      // Buy always goes through the shared buy handler (notice while preview).
+      node = el('button', { class: cls, type: 'button', 'data-buy': '' }, kids);
+    } else {
+      node = linkNode(key, cls, kids);
+      if (!link.url) node.removeAttribute('aria-label');
+    }
+    node.insertAdjacentHTML('afterbegin', ICONS[key] || '');
+    return node;
+  }
+  function buildActions() {
+    $$('[data-actions]').forEach(function (box) {
+      box.textContent = '';
+      var short = box.hasAttribute('data-short');
+      box.getAttribute('data-actions').split(/\s+/).forEach(function (key) {
+        var b = actionButton(key, short);
+        if (b) box.appendChild(b);
+      });
     });
   }
 
@@ -588,6 +613,29 @@
     });
   }
 
+  // Phone dock: shows Buy + Telegram once the hero buttons are off screen,
+  // and gets out of the way while the menu is open.
+  function setupDock() {
+    var dock = $('[data-dock]');
+    var hero = $('[data-hero-actions]');
+    if (!dock || !hero || !('IntersectionObserver' in window)) return;
+    var set = function (show) {
+      dock.classList.toggle('is-shown', show);
+      dock.inert = !show;
+      document.body.classList.toggle('dock-on', show);
+    };
+    set(false);
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        // Off screen *above* the viewport (scrolled past) or below it on very
+        // short screens: either way the reader can't see the big buttons.
+        set(!e.isIntersecting);
+      });
+    }, { threshold: 0 });
+    io.observe(hero);
+    observers.push(io);
+  }
+
   /* ─────────────── boot ─────────────── */
 
   applyConfig();
@@ -596,6 +644,7 @@
   setupMenu();
   setupActions();
   setupDeane();
+  setupDock();
   startEntrance();
 
   on(window, 'pagehide', function (e) {

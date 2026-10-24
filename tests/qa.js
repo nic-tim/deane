@@ -130,10 +130,12 @@ const check = async (name, fn) => {
     });
 
     await check('placeholder links never navigate and say they are placeholders', async () => {
-      const real = await page.$$eval('[data-quick-links] a:not([href^="#"]), [data-tabs] a, [data-foot-links] a, [data-receipt-links] a', els => els.length);
+      const real = await page.$$eval('[data-actions] a, [data-tabs] a, [data-foot-links] a, [data-receipt-links] a', els => els.length);
       assert.equal(real, 0);
-      await page.click('[data-quick-links] button >> nth=0');
-      assert.match(await page.textContent('[data-toast]'), /isn’t posted yet/);
+      await page.click('.hero-bar .act-telegram');
+      assert.match(await page.textContent('[data-toast]'), /Telegram link isn’t posted yet/);
+      const tags = await page.$$eval('.hero-bar .act:not(.act-buy)', b => b.every(x => /TBD/.test(x.textContent)));
+      assert.ok(tags, 'every placeholder action shows a TBD tag');
     });
 
     await check('poster tabs tear off and come back', async () => {
@@ -181,6 +183,18 @@ const check = async (name, fn) => {
       assert.ok(!(await page.isVisible('[data-notice]')));
       const top = await page.evaluate(() => document.getElementById('buy').getBoundingClientRect().top);
       assert.ok(Math.abs(top - 68) < 40, `guide link should land on #buy, top ${top}`);
+    });
+
+    await check('main actions are big and in the first screen', async () => {
+      await page.evaluate(() => scrollTo(0, 0));
+      await page.waitForTimeout(300);
+      const r = await page.evaluate(() => ['.hero-bar .act-buy', '.hero-bar .act-telegram', '.hero-bar .act-x'].map(s => {
+        const b = document.querySelector(s).getBoundingClientRect(); return { s, h: b.height, w: b.width, bottom: b.bottom };
+      }));
+      assert.ok(r[0].h >= 76 && r[0].w >= 300, `buy ${r[0].w}x${r[0].h}`);
+      assert.ok(r[1].h >= 60 && r[2].h >= 60, 'telegram and X at least 60px tall');
+      r.forEach(x => assert.ok(x.bottom <= 900, `${x.s} below the first screen (${x.bottom})`));
+      assert.ok(r[0].w > r[1].w, 'Buy is the largest action');
     });
 
     await check('Buy stays in reach after scrolling down', async () => {
@@ -245,11 +259,30 @@ const check = async (name, fn) => {
       assert.ok(await m.evaluate(() => document.getElementById('mobile-menu').hidden));
       assert.ok(await m.evaluate(() => document.activeElement.matches('[data-menu-toggle]')));
     });
-    await check('mobile: Buy is in the nav bar without opening the menu', async () => {
-      assert.ok(await m.isVisible('.nav-buy'));
-      await m.tap('.nav-buy');
+    await check('mobile: Buy and Telegram are big and on the first screen', async () => {
+      const r = await m.evaluate(() => ['.hero-bar .act-buy', '.hero-bar .act-telegram'].map(s => document.querySelector(s).getBoundingClientRect()).map(b => ({ h: b.height, w: b.width, top: b.top })));
+      assert.ok(r[0].h >= 72 && r[0].w >= 340, `buy ${r[0].w}x${r[0].h}`);
+      assert.ok(r[1].h >= 56, 'telegram at least 56px');
+      assert.ok(r[0].top < 844, 'buy visible without scrolling');
+    });
+    await check('mobile: the dock brings Buy + Telegram back once the hero scrolls away', async () => {
+      const shown = () => m.evaluate(() => {
+        const d = document.querySelector('[data-dock]'); const r = d.getBoundingClientRect();
+        return d.classList.contains('is-shown') && !d.inert && r.top < innerHeight;
+      });
+      assert.equal(await shown(), false, 'dock hidden while hero buttons are visible');
+      await m.evaluate(() => scrollTo(0, 2200));
+      await m.waitForTimeout(600);
+      assert.equal(await shown(), true, 'dock shown after scrolling');
+      await m.tap('[data-dock] .act-buy');
       assert.ok(await m.isVisible('[data-notice]'));
       await m.keyboard.press('Escape');
+      await m.tap('[data-dock] .act-telegram');
+      assert.match(await m.textContent('[data-toast]'), /Telegram/);
+      const clip = await m.evaluate(() => [...document.querySelectorAll('.act')].filter(e => e.offsetParent && e.scrollWidth > e.clientWidth + 1).length);
+      assert.equal(clip, 0, 'an action label is clipped');
+      await m.evaluate(() => scrollTo(0, 0));
+      await m.waitForTimeout(600);
     });
     await check('mobile: menu link closes the menu and lands on the section', async () => {
       await m.click('[data-menu-toggle]');
@@ -315,9 +348,14 @@ const check = async (name, fn) => {
     const live = await ctx.newPage();
     await live.goto(BASE, { waitUntil: 'networkidle' });
     await check('live config: buy buttons open the official listing in a new tab', async () => {
-      const [popup] = await Promise.all([live.waitForEvent('popup'), live.click('.nav-buy')]);
-      assert.equal(popup.url(), 'https://example.com/buy');
-      await popup.close();
+      for (const sel of ['.nav-buy', '.hero-bar .act-buy', '.sticker']) {
+        const [popup] = await Promise.all([live.waitForEvent('popup'), live.click(sel)]);
+        assert.equal(popup.url(), 'https://example.com/buy', sel);
+        await popup.close();
+      }
+      assert.deepEqual(await live.$$eval('.hero-bar .act:not(.act-buy)', a => a.map(x => x.getAttribute('href'))),
+        ['https://example.com/tg', 'https://example.com/x', 'https://example.com/chart']);
+      assert.equal(await live.$$eval('.act .tbd', t => t.length), 0, 'TBD tags must disappear once links are real');
       assert.ok(!(await live.isVisible('[data-notice]')));
     });
     await check('live config: copy puts the exact address on the clipboard', async () => {

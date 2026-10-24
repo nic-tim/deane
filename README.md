@@ -21,7 +21,7 @@ Opening `index.html` directly in a browser also works.
 ```bash
 npm run check                                            # syntax check
 npm i -D playwright && npx playwright install chromium   # once
-npm test                                                 # 58 checks in Chromium
+npm test                                                 # 60 checks in Chromium
 ```
 
 `tests/qa.js` covers the following:
@@ -57,7 +57,7 @@ npm test                                                 # 58 checks in Chromium
 The page is built around one job: get a visitor from "who is this guy" to the
 correct, official place to buy, with nothing to second-guess on the way.
 
-1. **Hero.** Edge-to-edge wordmark with Deane peeking over it, and a BUY sticker. Below sits the contract bar (network, address and Copy) and links for How to buy, Chart, X and Telegram.
+1. **Hero.** Edge-to-edge wordmark with Deane peeking over it, and a BUY sticker. Directly under it are the main actions as large buttons, sized by importance: **Buy $DEANE** (largest, yellow), **Join Telegram**, **Follow on X**, then a quieter **Chart**. Below those sit the contract bar (network, address and Copy) and a "How to buy" link.
 2. **Who is Deane?** The meme in four crossed-out lines and one sentence.
 3. **How to buy $DEANE.** Four beginner steps:
    - Step 3 has the contract and a Copy button inline.
@@ -68,7 +68,7 @@ correct, official place to buy, with nothing to second-guess on the way.
 4. **Find the others.** The "Have you seen Deane?" poster, whose tear-off tabs are the official X, Telegram and Chart links.
 5. **Footer.** Section links, the official links again, the preview note and the risk warning.
 
-The nav never hides, so **Buy $DEANE** stays one tap away on every screen, phones included.
+**Buy $DEANE** stays one tap away everywhere. On desktop the nav (which never hides) carries it. On phones, a dock with **Buy** and **Telegram** slides up from the bottom once the hero buttons scroll out of view. The community section repeats Join Telegram and Follow on X as large buttons beside the poster.
 
 ## Going live
 

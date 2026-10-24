@@ -50,8 +50,8 @@ window.SITE_CONFIG = {
     buy: { label: 'Buy $DEANE', venue: '[DEX TBD]', url: '' },
     chart: { label: 'Chart', url: '' },
     explorer: { label: 'Explorer', url: '' },
-    x: { label: 'X', handle: '[handle TBD]', url: '' },
-    telegram: { label: 'Telegram', handle: '[group TBD]', url: '' },
+    x: { label: 'X', cta: 'Follow on X', handle: '[handle TBD]', url: '' },
+    telegram: { label: 'Telegram', cta: 'Join Telegram', handle: '[group TBD]', url: '' },
   },
 
   hero: {
