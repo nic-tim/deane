@@ -1,9 +1,10 @@
-# MOONROT ($ROT) — concept site
+# DEANE ($DEANE)
 
-A launch website for a **fictional** meme coin, built as a design and development
-showcase. MOONROT, $ROT, the mascot, the copy and every figure are placeholder
-branding. No token, contract, market, liquidity, partnership or community exists,
-and the page says so wherever it matters.
+Website for the DEANE meme coin. Everybody knows a Deane.
+
+The page is a preview build. No contract address, chain, supply, tax, liquidity,
+listing or community link has been supplied, so every one of them is shown as a
+clearly marked placeholder. None of them has been made up.
 
 ## Run it
 
@@ -13,72 +14,61 @@ Requires Node 18+. There are no runtime dependencies.
 npm start            # http://localhost:4321  (or: node serve.js 8080)
 ```
 
-You can also open `index.html` directly in a browser. Everything works from `file://`.
+Opening `index.html` directly in a browser also works.
 
 ## Test it
 
 ```bash
-npm run check                                   # syntax check of the scripts
+npm run check                                            # syntax check
 npm i -D playwright && npx playwright install chromium   # once
-npm test                                        # 42 end-to-end checks in Chromium
+npm test                                                 # 50 checks in Chromium
 ```
 
 `tests/qa.js` covers the following:
 
-- No console errors, failed loads or third-party requests at 320, 390, 768, 1024, 1440 and 1920px.
-- No horizontal scroll, the fonts really load, and tap targets are at least 44px.
-- Nav links scroll to their sections, and every in-page anchor has a target.
-- Every buy button opens the demo notice. Escape and the button both close it.
-- Social placeholders never link out. The contract copy refuses to copy a non-existent address.
-- No address-shaped strings appear anywhere on the page.
-- Mobile menu: opens, traps focus, closes on Escape and returns focus, closes on navigation.
-- Keyboard: the skip link comes first and focus rings are visible.
-- Reduced motion: all content is visible immediately, and the marquee and mascot are still.
-- With JavaScript off, the headline and copy still render.
+- A source sweep that fails on old branding, references to artificial intelligence, or startup filler ("future of finance", "Web3", "powered by"…).
+- At 320, 390, 768, 1024, 1440 and 1920px:
+  - no console errors, failed loads or third-party requests
+  - no horizontal scroll
+  - all three fonts load
+  - the wordmark runs exactly edge to edge
+  - tap targets are at least 44px
+- Navigation and anchors, the buy notice from every buy button, placeholder links that never navigate, and poster tabs that tear and come back.
+- Contract copy that refuses to copy a missing address, and placeholder receipt values that are visibly marked.
+- Deane talks when poked and his eyes follow the pointer.
+- The mobile menu traps focus, closes on Escape, and closes on navigation.
+- Keyboard focus, reduced motion, and the no-JavaScript version.
 
 ## Files
 
 | File | What it is |
 |---|---|
-| `config.js` | **All replaceable brand details.** Name, ticker, colours, copy, tokenomics, contract, socials, CTAs, disclaimers. |
-| `index.html` | Page structure and the inline SVG mascot. |
-| `styles.css` | Design tokens at the top, then one block per section, responsive rules, reduced motion. |
-| `main.js` | Applies the config, builds the data-driven sections, and handles motion and interaction. No libraries. |
-| `assets/` | Self-hosted fonts (OFL, see `assets/fonts/LICENSE.md`) and the favicon. |
-| `serve.js` | Zero-dependency static server for local preview. |
+| `config.js` | **Everything replaceable:** name, ticker, colours, links, copy, receipt rows, Deane's lines, disclaimers. |
+| `index.html` | Page structure and the inline SVG of Deane. |
+| `styles.css` | Tokens at the top, then one block per section, then responsive rules and reduced motion. |
+| `main.js` | Applies the config, fits the wordmark, and runs the menu, links, notice, tear-off tabs and Deane. No libraries. |
+| `assets/` | Self-hosted fonts (licences in `assets/fonts/LICENSE.md`) and the favicon. |
+| `serve.js` | Zero-dependency static server. |
 | `scripts/build-preview.js` | Bundles everything into one HTML file in `dist/` for sharing. |
 | `tests/qa.js` | Playwright QA suite. |
 
-## Rebranding for the real client
+## The page
 
-Almost all of it happens in **`config.js`**:
+1. **Hero.** A giant wordmark that is always fitted edge to edge, with Deane peeking over it. His eyes follow the pointer and he talks when poked. A round BUY sticker sits on the wordmark. Below it are a contract-address bar and Chart / X / Telegram links.
+2. **Tape.** One tilted marquee strip.
+3. **Who is Deane?** He is not a dog, a frog, a cat in a hat, or a guy with a roadmap. Just Deane.
+4. **The boring part.** Token details as a till receipt, plus three lines on how to buy once it's live.
+5. **Find the others.** A "Have you seen Deane?" poster whose tear-off tabs are the community links.
+6. **Footer.** The preview note and risk warning.
 
-1. **Name and ticker.** Set `brand.name`, `brand.ticker`, `brand.tagline` and the meta title and description.
-2. **Colours.** Edit `colors`. Mirror the same values in the `:root` block at the top of
-   `styles.css` so the first paint matches. `acid` is the single accent, so keep it rare.
-3. **Copy.** Set `hero`, `marquee`, `about`, `howToBuy`, `community` and `footer`. Hero headline
-   lines are an array, one string per line. Wrap a word in `*asterisks*` to colour it.
-4. **Mascot.** Put the client's art in `assets/` and set `mascot.src` (and `mascot.alt`).
-   It replaces the drawn moon in both the hero and the community section. A square
-   transparent PNG or WebP of at least 1200px works best. The poke interaction keeps working.
-   The pupil tracking and blink only apply to the SVG mascot.
-5. **Tokenomics.** Set `totalSupply` and replace `allocations` (percentages should total 100;
-   the ring is drawn from them). Then replace each `facts` value. Anything still in
-   `[brackets]` renders in grey italic as an open placeholder.
-6. **Contract.** Set `contract.address` and `contract.network` only once the address is real
-   and verified. Until then the page shows "Not yet published" and the copy button refuses.
-7. **Socials.** Fill in each `url`. An empty URL renders as a labelled placeholder button.
-   A filled one becomes a real link that opens in a new tab.
-8. **Going live.** Set `demo: false` and `hero.buyUrl` to the client's verified official
-   listing. Then remove the "Concept site" flag in `index.html`, the "Illustrative" tape
-   labels, the `noindex` robots meta, and the demo sentences in `footer.disclaimer`.
-   Keep the risk language.
+## Going live
 
-## What is still placeholder
+Everything happens in `config.js`:
 
-- The brand: MOONROT, $ROT, the mascot, tagline, lore and all copy.
-- Every tokenomics figure: supply, the 70/15/8/7 split, and the notes.
-- Network, tax, ownership and audit status, all shown as `[To be confirmed]`.
-- Contract address: not shown, by design.
-- X and Telegram links: not connected, labelled as demo placeholders.
-- Buy buttons: open a demo notice. No wallet connection and no transaction exist anywhere in the code.
+1. **`links`.** Fill in `buy`, `chart`, `x` and `telegram` with official URLs (and handles). An empty URL stays a labelled placeholder button. A filled one becomes a real link that opens in a new tab.
+2. **`contract.address`.** Paste the verified address. The hero bar shows it in full, the receipt shows it shortened, and Copy starts working.
+3. **`token.rows`.** Replace each `[TBD]`. Any value still containing `[brackets]` renders grey as a visible placeholder.
+4. **`token.howTo`.** Replace `[chain]` with the real chain.
+5. **`preview: false`.** Buy buttons then go to `links.buy.url` instead of the notice, and the preview-only lines (the footer note and the poster note) disappear.
+6. In `index.html`, remove `<meta name="robots" content="noindex, nofollow">`.
+7. Optional: set `deane.src` to supplied artwork to replace the drawn Deane in both the hero and the poster. The poke-to-talk interaction keeps working.

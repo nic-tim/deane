@@ -1,8 +1,8 @@
 {
-  "name": "moonrot-concept-site",
+  "name": "deane-site",
   "version": "1.0.0",
   "private": true,
-  "description": "MOONROT ($ROT): a fictional meme coin launch site built as a design demonstration.",
+  "description": "DEANE ($DEANE) meme coin website.",
   "scripts": {
     "start": "node serve.js",
     "test": "node tests/qa.js",

@@ -1,6 +1,6 @@
 // Bundles the site into one self-contained HTML file (fonts, CSS, config and
 // script inlined) for sharing as a single page: `node scripts/build-preview.js`.
-// Output: dist/moonrot-preview.html. The source files stay the source of truth.
+// Output: dist/deane-preview.html. The source files stay the source of truth.
 const fs = require('fs');
 const path = require('path');
 
@@ -32,5 +32,5 @@ const out = [
 ].join('\n');
 
 fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
-fs.writeFileSync(path.join(root, 'dist', 'moonrot-preview.html'), out);
-console.log(`dist/moonrot-preview.html  ${(Buffer.byteLength(out) / 1024).toFixed(0)} KB`);
+fs.writeFileSync(path.join(root, 'dist', 'deane-preview.html'), out);
+console.log(`dist/deane-preview.html  ${(Buffer.byteLength(out) / 1024).toFixed(0)} KB`);

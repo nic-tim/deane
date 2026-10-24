@@ -1,10 +1,9 @@
 /*
- * MOONROT — page behaviour.
+ * DEANE — page behaviour.
  *
  * No dependencies. Reads window.SITE_CONFIG (config.js), fills the page,
- * then wires motion and interaction. Every listener is registered against one
- * AbortController and every observer is disconnected on pagehide, so nothing
- * outlives the page (or a bfcache restore).
+ * then wires motion and interaction. Listeners hang off one AbortController
+ * and observers are disconnected on pagehide, so nothing outlives the page.
  */
 (function () {
   'use strict';
@@ -18,8 +17,8 @@
   var observers = [];
 
   var reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-  var finePointerQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
   var reduceMotion = reduceMotionQuery.matches;
+  on(reduceMotionQuery, 'change', function (e) { reduceMotion = e.matches; });
 
   var $ = function (sel, ctx) { return (ctx || document).querySelector(sel); };
   var $$ = function (sel, ctx) { return Array.prototype.slice.call((ctx || document).querySelectorAll(sel)); };
@@ -36,7 +35,7 @@
     (children || []).forEach(function (c) { if (c) node.appendChild(c); });
     return node;
   };
-  var isPlaceholder = function (v) { return typeof v === 'string' && /^\s*\[.*\]\s*$/.test(v); };
+  var isPlaceholder = function (v) { return typeof v === 'string' && /\[[^\]]*\]/.test(v); };
 
   /* ─────────────── 1. Apply config ─────────────── */
 
@@ -44,7 +43,7 @@
     if (cfg.colors) {
       Object.keys(cfg.colors).forEach(function (k) { root.style.setProperty('--' + k, cfg.colors[k]); });
       var theme = $('meta[name="theme-color"]');
-      if (theme && cfg.colors.ink) theme.setAttribute('content', cfg.colors.ink);
+      if (theme && cfg.colors.blue) theme.setAttribute('content', cfg.colors.blue);
     }
     if (cfg.brand) {
       if (cfg.brand.metaTitle) document.title = cfg.brand.metaTitle;
@@ -57,227 +56,142 @@
       if (typeof v === 'string' && v) node.textContent = v;
     });
 
-    // Headline: one string per line; *word* marks the accent.
-    var lines = get('hero.headline');
-    var h1 = $('[data-headline]');
-    if (h1 && Array.isArray(lines) && lines.length) {
-      h1.textContent = '';
-      lines.forEach(function (line) {
-        var inner = el('span', { class: 'line-inner' });
-        line.split(/(\*[^*]+\*)/).forEach(function (part) {
-          if (!part) return;
-          if (/^\*.*\*$/.test(part)) inner.appendChild(el('em', { text: part.slice(1, -1) }));
-          else inner.appendChild(document.createTextNode(part));
-        });
-        h1.appendChild(el('span', { class: 'line' }, [inner]));
-      });
-    }
-
-    var comLines = get('community.headline');
-    var comTitle = $('#com-title');
-    if (comTitle && Array.isArray(comLines)) {
-      comTitle.textContent = '';
-      comLines.forEach(function (t) { comTitle.appendChild(el('span', { text: t })); });
-    }
+    if (!cfg.preview) $$('[data-preview-only]').forEach(function (n) { n.hidden = true; });
 
     var year = $('[data-year]');
     if (year) year.textContent = String(new Date().getFullYear());
 
+    buildWordmark();
     buildMarquee();
-    buildChapters();
-    buildTokenomics();
-    buildContract();
-    buildSteps();
-    buildSocials();
-    buildMascots();
+    buildQuickLinks();
+    buildNotList();
+    buildToken();
+    buildTabs();
+    buildArt();
+  }
+
+  // One span per letter, so the entrance can stagger them.
+  function buildWordmark() {
+    var h1 = $('[data-wordmark]');
+    var name = get('brand.name') || 'DEANE';
+    if (!h1) return;
+    h1.textContent = '';
+    h1.setAttribute('aria-label', name);
+    var inner = el('span', { class: 'wm-inner', 'aria-hidden': 'true' });
+    name.split('').forEach(function (ch, i) {
+      var s = el('span', { class: 'letter', text: ch });
+      s.style.setProperty('--n', i);
+      inner.appendChild(s);
+    });
+    h1.appendChild(inner);
+  }
+
+  // Size the wordmark so it runs exactly edge to edge of the content area.
+  function fitWordmark() {
+    var stage = $('.stage');
+    var inner = $('.wm-inner');
+    if (!stage || !inner) return;
+    var cs = getComputedStyle(stage);
+    var target = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    var current = parseFloat(getComputedStyle($('[data-wordmark]')).fontSize);
+    var width = inner.getBoundingClientRect().width;
+    if (!width || !target) return;
+    stage.style.setProperty('--wm', (current * target / width).toFixed(2) + 'px');
   }
 
   function buildMarquee() {
     var items = cfg.marquee;
     var track = $('[data-marquee]');
     if (!track || !Array.isArray(items) || !items.length) return;
-    // Two identical lists side by side; the track slides by exactly one list
-    // width (-50%), so the loop has no visible seam. Each list repeats the
-    // items until it is wider than any reasonable screen.
-    var reps = Math.max(2, Math.ceil(16 / items.length));
-    var makeList = function (hidden) {
-      var ul = el('ul', { class: 'marquee-list mono' });
-      if (hidden) ul.setAttribute('aria-hidden', 'true');
-      for (var r = 0; r < reps; r++) {
-        items.forEach(function (t, i) {
-          var li = el('li', { text: t });
-          if (r > 0 || hidden) li.setAttribute('aria-hidden', 'true');
-          ul.appendChild(li);
-        });
-      }
+    // Two identical lists; the track slides exactly one list width (-50%),
+    // so the loop has no seam. Each list repeats until it outruns wide screens.
+    var reps = Math.max(2, Math.ceil(14 / items.length));
+    var list = function () {
+      var ul = el('ul');
+      for (var r = 0; r < reps; r++) items.forEach(function (t) { ul.appendChild(el('li', { text: t })); });
       return ul;
     };
     track.textContent = '';
-    track.appendChild(makeList(false));
-    track.appendChild(makeList(true));
+    track.appendChild(list());
+    track.appendChild(list());
   }
 
-  function buildChapters() {
-    var list = $('[data-chapters]');
-    var chapters = get('about.chapters');
-    if (!list || !Array.isArray(chapters)) return;
-    var numerals = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+  // A real link when the URL is known, otherwise a button that says so.
+  function linkNode(key, className, children) {
+    var link = (cfg.links || {})[key] || {};
+    var node = link.url
+      ? el('a', { class: className, href: link.url, target: '_blank', rel: 'noopener noreferrer' }, children)
+      : el('button', { class: className, type: 'button', 'data-placeholder-link': link.label || key }, children);
+    node.setAttribute('aria-label', (link.label || key) + (link.url ? ' (opens in a new tab)' : ', placeholder, link not posted yet'));
+    return node;
+  }
+
+  function buildQuickLinks() {
+    var list = $('[data-quick-links]');
+    if (!list) return;
     list.textContent = '';
-    chapters.forEach(function (c, i) {
-      list.appendChild(el('li', { class: 'chapter', 'data-reveal': '', style: '--d:' + i }, [
-        el('span', { class: 'chapter-num mono', text: 'Chapter ' + (numerals[i] || String(i + 1)) }),
-        el('h3', { text: c.title }),
-        el('p', { text: c.body }),
-      ]));
+    ['chart', 'x', 'telegram'].forEach(function (key) {
+      var link = (cfg.links || {})[key];
+      if (!link) return;
+      var kids = [document.createTextNode(link.label + (link.url ? ' ↗' : ''))];
+      if (!link.url) kids.push(el('span', { class: 'tbd', text: 'TBD' }));
+      list.appendChild(el('li', {}, [linkNode(key, '', kids)]));
     });
   }
 
-  var SVGNS = 'http://www.w3.org/2000/svg';
-  var svg = function (tag, attrs) {
-    var n = document.createElementNS(SVGNS, tag);
-    Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); });
-    return n;
-  };
+  function buildNotList() {
+    var list = $('[data-not-list]');
+    var items = get('about.not');
+    if (!list || !Array.isArray(items)) return;
+    list.textContent = '';
+    items.forEach(function (t, i) {
+      var li = el('li', { 'data-reveal': '' }, [document.createTextNode('Not '), el('s', { text: t + '.' })]);
+      li.style.setProperty('--d', i);
+      list.appendChild(li);
+    });
+  }
 
-  function buildTokenomics() {
-    var t = cfg.tokenomics || {};
-    var allocations = t.allocations || [];
-    var donut = $('[data-donut]');
-    var ledger = $('[data-ledger]');
-    var colors = ['var(--acid)', 'var(--bone)', 'var(--moss)', 'var(--fog)', 'var(--line)'];
-
-    if (donut) {
-      donut.textContent = '';
-      var cx = 200, r = 150, C = 2 * Math.PI * r, gap = 4;
-      // A dial of ticks, like the phase ring on a moon watch.
-      for (var i = 0; i < 72; i++) {
-        var a = (i / 72) * Math.PI * 2;
-        var long = i % 6 === 0;
-        var r1 = 178, r2 = long ? 192 : 186;
-        donut.appendChild(svg('line', {
-          class: 'tick',
-          x1: cx + r1 * Math.cos(a), y1: cx + r1 * Math.sin(a),
-          x2: cx + r2 * Math.cos(a), y2: cx + r2 * Math.sin(a),
-        }));
-      }
-      donut.appendChild(svg('circle', { class: 'arc-track', cx: cx, cy: cx, r: 118 }));
-      var total = allocations.reduce(function (s, x) { return s + (Number(x.percent) || 0); }, 0) || 100;
-      var offset = 0;
-      allocations.forEach(function (al, idx) {
-        var len = Math.max(0, (al.percent / total) * C - gap);
-        var arc = svg('circle', {
-          class: 'arc',
-          cx: cx, cy: cx, r: r,
-          stroke: colors[idx % colors.length],
-          'stroke-dasharray': '0 ' + C,
-          'stroke-dashoffset': String(-offset),
-          transform: 'rotate(-90 ' + cx + ' ' + cx + ')',
-          'data-idx': idx,
-        });
-        arc.style.stroke = colors[idx % colors.length];
-        arc.dataset.len = String(len);
-        arc.dataset.c = String(C);
-        donut.appendChild(arc);
-        offset += (al.percent / total) * C;
-      });
-    }
-
-    if (ledger) {
-      ledger.textContent = '';
-      allocations.forEach(function (al, idx) {
-        var sw = el('span', { class: 'ledger-swatch', 'aria-hidden': 'true' });
-        sw.style.background = colors[idx % colors.length];
-        var pct = el('span', { class: 'ledger-pct' });
-        pct.appendChild(document.createTextNode(String(al.percent)));
-        pct.appendChild(el('small', { text: '%' }));
-        ledger.appendChild(el('li', { class: 'ledger-row', 'data-idx': idx, 'data-reveal': '', style: '--d:' + idx }, [
-          sw,
-          el('span', { class: 'ledger-label', text: al.label }),
-          al.note ? el('span', { class: 'ledger-note', text: al.note }) : null,
-          pct,
+  function buildToken() {
+    var rows = $('[data-receipt-rows]');
+    if (rows && Array.isArray(get('token.rows'))) {
+      rows.textContent = '';
+      get('token.rows').forEach(function (r) {
+        rows.appendChild(el('div', {}, [
+          el('dt', { text: r.label }),
+          el('dd', { class: isPlaceholder(r.value) ? 'is-placeholder' : '', text: r.value }),
         ]));
       });
     }
-
-    var facts = $('[data-facts]');
-    if (facts && Array.isArray(t.facts)) {
-      facts.textContent = '';
-      t.facts.forEach(function (f) {
-        facts.appendChild(el('div', { class: 'fact' }, [
-          el('dt', { text: f.label }),
-          el('dd', { class: isPlaceholder(f.value) ? 'is-placeholder' : '', text: f.value }),
-        ]));
-      });
+    var howto = $('[data-howto]');
+    if (howto && Array.isArray(get('token.howTo'))) {
+      howto.textContent = '';
+      get('token.howTo').forEach(function (t) { howto.appendChild(el('li', { text: t })); });
     }
-  }
-
-  function drawDonut() {
-    $$('[data-donut] .arc').forEach(function (arc, i) {
-      var len = arc.dataset.len, C = arc.dataset.c;
-      arc.style.transition = reduceMotion ? 'none' : 'stroke-dasharray 1.3s cubic-bezier(.16,1,.3,1) ' + (i * 0.14) + 's';
-      arc.setAttribute('stroke-dasharray', len + ' ' + C);
+    var addr = get('contract.address') || '';
+    $$('[data-contract], [data-contract-short]').forEach(function (n) {
+      var short = n.hasAttribute('data-contract-short') && addr.length > 14;
+      n.textContent = addr ? (short ? addr.slice(0, 6) + '…' + addr.slice(-4) : addr) : 'Not published yet';
+      n.classList.toggle('is-placeholder', !addr);
     });
   }
 
-  function buildContract() {
-    var code = $('[data-contract]');
-    if (!code) return;
-    var addr = (cfg.contract && cfg.contract.address) || '';
-    code.textContent = addr || 'Not yet published';
-    code.classList.toggle('is-placeholder', !addr);
-  }
-
-  function buildSteps() {
-    var list = $('[data-steps]');
-    var steps = get('howToBuy.steps');
-    if (!list || !Array.isArray(steps)) return;
+  function buildTabs() {
+    var list = $('[data-tabs]');
+    if (!list) return;
     list.textContent = '';
-    list.setAttribute('data-reveal', '');
-    steps.forEach(function (s, i) {
-      list.appendChild(el('li', { class: 'step', 'data-reveal': '', style: '--d:' + (i * 2) }, [
-        el('span', { class: 'step-num', 'aria-hidden': 'true', text: String(i + 1) }),
-        el('h3', { text: s.title }),
-        el('p', { text: s.body }),
-      ]));
+    ['x', 'telegram', 'chart'].forEach(function (key) {
+      var link = (cfg.links || {})[key];
+      if (!link) return;
+      var meta = link.url ? (link.handle || 'Open') : 'Placeholder';
+      list.appendChild(el('li', {}, [linkNode(key, 'tab', [
+        el('span', { class: 'tab-name', text: link.label }),
+        el('span', { class: 'tab-meta', text: meta }),
+      ])]));
     });
   }
 
-  var ARROW = '<svg class="social-arrow" viewBox="0 0 40 40" aria-hidden="true"><path d="M8 20h22M21 10l10 10-10 10" fill="none" stroke="currentColor" stroke-width="3"/></svg>';
-
-  function buildSocials() {
-    var socials = get('community.socials') || [];
-    var list = $('[data-socials]');
-    var foot = $('[data-foot-socials]');
-    if (list) list.textContent = '';
-    if (foot) foot.textContent = '';
-
-    socials.forEach(function (s, i) {
-      var live = !!s.url;
-      var meta = live ? s.handle : 'Demo placeholder · link not connected';
-
-      if (list) {
-        var node = live
-          ? el('a', { class: 'social', href: s.url, target: '_blank', rel: 'noopener noreferrer' })
-          : el('button', { class: 'social', type: 'button', 'data-placeholder-link': s.name });
-        node.setAttribute('aria-label', live ? s.name + ' (opens in a new tab)' : s.name + ', demo placeholder, not connected');
-        node.appendChild(el('span', { class: 'social-name', text: s.name }));
-        node.appendChild(el('span', { class: 'social-meta', text: meta }));
-        node.insertAdjacentHTML('beforeend', ARROW);
-        list.appendChild(el('li', { 'data-reveal': '', style: '--d:' + i }, [node]));
-      }
-
-      if (foot) {
-        var f = live
-          ? el('a', { href: s.url, target: '_blank', rel: 'noopener noreferrer', text: s.name })
-          : el('button', { type: 'button', 'data-placeholder-link': s.name, text: s.name });
-        if (!live) f.appendChild(el('small', { text: 'placeholder' }));
-        foot.appendChild(el('li', {}, [f]));
-      }
-    });
-  }
-
-  // Give a cloned SVG its own ids so its gradients, masks and clips do not
-  // collide with (or silently resolve to) the original's.
+  // Give a cloned SVG its own ids so its clip paths do not collide with
+  // (or silently resolve to) the original's.
   function cloneSvgWithIds(source, suffix) {
     var copy = source.cloneNode(true);
     var map = {};
@@ -285,70 +199,63 @@
     $$('*', copy).forEach(function (n) {
       Array.prototype.slice.call(n.attributes).forEach(function (a) {
         var v = a.value.replace(/url\(#([^)]+)\)/g, function (m, id) { return map[id] ? 'url(#' + map[id] + ')' : m; });
-        if ((a.name === 'href' || a.name === 'xlink:href' || a.name === 'aria-labelledby') && v.charAt(0) !== '#' && map[v]) v = map[v];
-        if ((a.name === 'href' || a.name === 'xlink:href') && v.charAt(0) === '#' && map[v.slice(1)]) v = '#' + map[v.slice(1)];
         if (v !== a.value) n.setAttribute(a.name, v);
       });
     });
     return copy;
   }
 
-  function buildMascots() {
-    var btn = $('[data-mascot]');
-    var peek = $('[data-peek]');
-    var src = cfg.mascot && cfg.mascot.src;
+  function buildArt() {
+    var btn = $('[data-deane]');
+    var portrait = $('[data-portrait]');
     var art = btn && $('svg', btn);
+    var src = get('deane.src');
+    var alt = get('deane.alt') || '';
 
-    if (src && btn) {
-      var img = el('img', { class: 'mascot-img', src: src, alt: (cfg.mascot.alt || ''), decoding: 'async' });
-      btn.replaceChild(img, art);
-      if (peek) peek.appendChild(el('img', { class: 'mascot-img', src: src, alt: '', loading: 'lazy', decoding: 'async' }));
+    if (src && btn && art) {
+      btn.replaceChild(el('img', { class: 'deane-img', src: src, alt: alt, decoding: 'async' }), art);
+      if (portrait) portrait.appendChild(el('img', { src: src, alt: '', loading: 'lazy', decoding: 'async' }));
       return;
     }
-    if (art && cfg.mascot && cfg.mascot.alt) {
-      var title = $('title', art);
-      if (title) title.textContent = cfg.mascot.alt;
-    }
-    if (art && peek) {
-      var copy = cloneSvgWithIds(art, '-peek');
+    if (art && alt) { var t = $('title', art); if (t) t.textContent = alt; }
+    if (art && portrait) {
+      var copy = cloneSvgWithIds(art, '-poster');
       copy.removeAttribute('role');
       copy.removeAttribute('aria-labelledby');
-      var t = $('title', copy);
-      if (t) t.remove();
-      peek.appendChild(copy);
+      var title = $('title', copy);
+      if (title) title.remove();
+      portrait.appendChild(copy);
     }
   }
 
   /* ─────────────── 2. Entrance + reveals ─────────────── */
 
   function startEntrance() {
-    var go = function () { root.classList.add('is-ready'); };
-    // Wait for the display face so the headline does not reflow mid-animation,
-    // but never longer than a moment.
+    var go = function () { fitWordmark(); requestAnimationFrame(function () { root.classList.add('is-ready'); }); };
     var timer = setTimeout(go, 700);
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(function () { clearTimeout(timer); requestAnimationFrame(go); });
+      document.fonts.ready.then(function () { clearTimeout(timer); go(); });
     }
+    var resizeFrame = 0;
+    on(window, 'resize', function () {
+      if (!resizeFrame) resizeFrame = requestAnimationFrame(function () { resizeFrame = 0; fitWordmark(); });
+    }, { passive: true });
   }
 
   function setupReveals() {
     var targets = $$('[data-reveal]');
-    var reveal = function (n) {
-      n.classList.add('is-in');
-      if (n.classList.contains('tok-chart')) drawDonut();
-    };
     if (reduceMotion || !('IntersectionObserver' in window)) {
-      targets.forEach(reveal);
+      targets.forEach(function (n) { n.classList.add('is-in'); });
       return;
     }
     root.classList.add('js-reveal');
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (!e.isIntersecting) return;
-        reveal(e.target);
+        e.target.classList.add('is-in');
         io.unobserve(e.target);
       });
-    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.12 });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.1 });
     targets.forEach(function (t) { io.observe(t); });
     observers.push(io);
   }
@@ -383,7 +290,6 @@
     on(nav, 'focusin', function () { nav.classList.remove('is-hidden'); });
     update();
 
-    // Mark the section in view.
     var links = $$('.nav-links a');
     var byId = {};
     links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
@@ -411,14 +317,12 @@
     var label = toggle && $('.nav-toggle-label', toggle);
     if (!toggle || !menu) return;
     var closeTimer;
+    var focusables = function () { return [toggle].concat($$('a, button', menu)); };
 
-    var focusables = function () {
-      return [toggle].concat($$('a, button', menu));
-    };
     var open = function () {
       clearTimeout(closeTimer);
       menu.hidden = false;
-      void menu.offsetWidth; // commit the closed state so the clip transition runs
+      void menu.offsetWidth; // commit the closed state so the transition runs
       menu.classList.add('is-open');
       document.body.classList.add('menu-open');
       toggle.setAttribute('aria-expanded', 'true');
@@ -434,16 +338,12 @@
       toggle.setAttribute('aria-expanded', 'false');
       toggle.removeAttribute('aria-label');
       if (label) label.textContent = 'Menu';
-      closeTimer = setTimeout(function () { menu.hidden = true; }, reduceMotion ? 0 : 560);
+      closeTimer = setTimeout(function () { menu.hidden = true; }, reduceMotion ? 0 : 520);
       if (returnFocus) toggle.focus();
     };
 
-    on(toggle, 'click', function () {
-      toggle.getAttribute('aria-expanded') === 'true' ? close(false) : open();
-    });
-    on(menu, 'click', function (e) {
-      if (e.target.closest('a')) close(false);
-    });
+    on(toggle, 'click', function () { toggle.getAttribute('aria-expanded') === 'true' ? close(false) : open(); });
+    on(menu, 'click', function (e) { if (e.target.closest('a, [data-buy]')) close(false); });
     on(document, 'keydown', function (e) {
       if (toggle.getAttribute('aria-expanded') !== 'true') return;
       if (e.key === 'Escape') { close(true); return; }
@@ -453,11 +353,10 @@
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
-    var wide = window.matchMedia('(min-width: 961px)');
-    on(wide, 'change', function (e) { if (e.matches) close(false); });
+    on(window.matchMedia('(min-width: 961px)'), 'change', function (e) { if (e.matches) close(false); });
   }
 
-  /* ─────────────── 4. Demo-safe actions ─────────────── */
+  /* ─────────────── 4. Links, buy, copy ─────────────── */
 
   var toastTimer;
   function toast(msg) {
@@ -468,89 +367,78 @@
     t.textContent = msg;
     void t.offsetWidth;
     t.hidden = false;
-    toastTimer = setTimeout(function () { t.hidden = true; }, 3600);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 3400);
   }
 
   function setupActions() {
     var dialog = $('[data-notice]');
     on(document, 'click', function (e) {
-      var buy = e.target.closest('[data-buy]');
-      if (buy) {
-        var url = get('hero.buyUrl');
-        if (!cfg.demo && url) { window.open(url, '_blank', 'noopener'); return; }
+      var tab = e.target.closest('.tab');
+      if (tab && !reduceMotion) {
+        tab.classList.remove('is-torn');
+        void tab.offsetWidth;
+        tab.classList.add('is-torn');
+      }
+
+      if (e.target.closest('[data-buy]')) {
+        var url = get('links.buy.url');
+        if (!cfg.preview && url) { window.open(url, '_blank', 'noopener'); return; }
         if (dialog && typeof dialog.showModal === 'function') dialog.showModal();
-        else toast('Demo only — $ROT does not exist and nothing can be bought.');
+        else toast('The buy link hasn’t been posted yet.');
         return;
       }
       var ph = e.target.closest('[data-placeholder-link]');
       if (ph) {
-        toast('Placeholder: the real ' + ph.getAttribute('data-placeholder-link') + ' link goes here once the client provides it.');
+        toast(ph.getAttribute('data-placeholder-link') + ' link isn’t posted yet. It goes here once it’s official.');
         return;
       }
       if (e.target.closest('[data-copy-contract]')) copyContract();
     });
-    // Click on the backdrop closes the dialog.
-    if (dialog) {
-      on(dialog, 'click', function (e) { if (e.target === dialog) dialog.close(); });
-    }
+    on(document, 'animationend', function (e) {
+      if (e.target.classList && e.target.classList.contains('is-torn')) e.target.classList.remove('is-torn');
+    });
+    if (dialog) on(dialog, 'click', function (e) { if (e.target === dialog) dialog.close(); });
   }
 
   function copyContract() {
-    var addr = cfg.contract && cfg.contract.address;
-    if (!addr) {
-      toast('No contract address exists for this demo, so nothing was copied.');
-      return;
-    }
-    var done = function () { toast('Contract address copied. Check every character before you use it.'); };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(addr).then(done, function () { selectContract(); });
-    } else {
-      selectContract();
-    }
-  }
-  function selectContract() {
-    var code = $('[data-contract]');
-    var range = document.createRange();
-    range.selectNodeContents(code);
-    var sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-    toast('Address selected. Press Ctrl+C or Cmd+C to copy.');
-  }
-
-  /* ─────────────── 5. Mascot ─────────────── */
-
-  function setupMascot() {
-    var mascots = $$('.mascot');
-    var heroBtn = $('[data-mascot]');
-    var parallax = $('[data-parallax]');
-    var glow = $('.hero-glow');
-
-    var pauseSmil = function () {
-      mascots.forEach(function (m) {
-        if (typeof m.pauseAnimations === 'function') {
-          reduceMotion ? m.pauseAnimations() : m.unpauseAnimations();
-        }
-      });
+    var addr = get('contract.address');
+    if (!addr) { toast('No contract address has been posted, so there’s nothing to copy.'); return; }
+    var done = function () { toast('Copied. Check every character before you use it.'); };
+    var select = function () {
+      var code = $('[data-contract]');
+      var range = document.createRange();
+      range.selectNodeContents(code);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      toast('Address selected. Press Ctrl+C or Cmd+C to copy.');
     };
-    pauseSmil();
-    on(reduceMotionQuery, 'change', function (e) { reduceMotion = e.matches; pauseSmil(); });
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(addr).then(done, select);
+    else select();
+  }
 
-    // Eyes follow the pointer (or the last tap). Rects are cached and
-    // refreshed on scroll/resize, and work happens at most once per frame.
+  /* ─────────────── 5. Deane ─────────────── */
+
+  function setupDeane() {
+    var btn = $('[data-deane]');
+    var bubble = $('[data-bubble]');
+    var note = $('.hero-note');
+
+    // His eyes follow the pointer (or the last tap). Positions are cached and
+    // refreshed on scroll/resize; work happens at most once per frame.
     var pupils = [];
     var refresh = function () {
       pupils = [];
-      mascots.forEach(function (m) {
-        var r = m.getBoundingClientRect();
-        if (!r.width || r.bottom < 0 || r.top > window.innerHeight) return;
-        $$('.m-pupil', m).forEach(function (p) {
-          var c = $('circle', p);
+      $$('svg.deane, .p-photo svg').forEach(function (svg) {
+        var r = svg.getBoundingClientRect();
+        var vb = svg.viewBox && svg.viewBox.baseVal;
+        if (!vb || !r.width || r.bottom < 0 || r.top > window.innerHeight) return;
+        $$('.pupil', svg).forEach(function (p) {
           pupils.push({
             node: p,
-            range: Number(p.getAttribute('data-pupil')) || 12,
-            x: r.left + (Number(c.getAttribute('cx')) / 600) * r.width,
-            y: r.top + (Number(c.getAttribute('cy')) / 600) * r.height,
+            range: Number(p.getAttribute('data-pupil')) || 8,
+            x: r.left + (Number(p.getAttribute('cx')) / vb.width) * r.width,
+            y: r.top + (Number(p.getAttribute('cy')) / vb.height) * r.height,
           });
         });
       });
@@ -562,52 +450,47 @@
       pupils.forEach(function (p) {
         var dx = target.x - p.x, dy = target.y - p.y;
         var d = Math.hypot(dx, dy) || 1;
-        var k = Math.min(1, d / 260) * p.range;
+        var k = Math.min(1, d / 240) * p.range;
         p.node.style.transform = 'translate(' + (dx / d * k).toFixed(1) + 'px,' + (dy / d * k).toFixed(1) + 'px)';
       });
-      if (parallax && finePointerQuery.matches && !reduceMotion) {
-        var nx = target.x / window.innerWidth - 0.5;
-        var ny = target.y / window.innerHeight - 0.5;
-        parallax.style.transform = 'translate3d(' + (nx * -16).toFixed(1) + 'px,' + (ny * -12).toFixed(1) + 'px,0)';
-        if (glow) glow.style.translate = (nx * 30).toFixed(1) + 'px ' + (ny * 24).toFixed(1) + 'px';
-      }
     };
     var point = function (e) {
       target = { x: e.clientX, y: e.clientY };
       if (!frame) frame = requestAnimationFrame(render);
     };
+    var refreshSoon = function () {
+      if (!frame) frame = requestAnimationFrame(function () { frame = 0; refresh(); render(); });
+    };
     refresh();
     on(window, 'pointermove', point, { passive: true });
     on(window, 'pointerdown', point, { passive: true });
-    var refreshSoon = function () { if (!frame) frame = requestAnimationFrame(function () { frame = 0; refresh(); render(); }); };
     on(window, 'scroll', refreshSoon, { passive: true });
     on(window, 'resize', refreshSoon, { passive: true });
-    if (parallax) parallax.style.transition = 'transform .6s cubic-bezier(.16,1,.3,1)';
 
-    // Poke it.
-    var count = $('[data-poke-count]');
-    var pokes = 0;
-    var lines = [
-      'Poked once. It noticed.',
-      'Twice. It is writing this down.',
-      'Three. The worm has gone to get someone.',
-    ];
-    var unpoke;
-    if (heroBtn) {
-      on(heroBtn, 'click', function () {
-        pokes += 1;
-        heroBtn.classList.remove('is-poked');
-        void heroBtn.offsetWidth;
-        heroBtn.classList.add('is-poked');
-        clearTimeout(unpoke);
-        unpoke = setTimeout(function () { heroBtn.classList.remove('is-poked'); }, 1500);
-        if (count) {
-          count.textContent = pokes <= lines.length ? lines[pokes - 1]
-            : pokes >= 10 ? pokes + ' pokes. You are the rot now.'
-            : pokes + ' pokes. The smell is getting worse.';
-        }
-      });
-    }
+    // Poke him and he talks back.
+    if (!btn) return;
+    var lines = get('deane.lines') || ['gm.'];
+    var count = 0, hideTimer, unpoke;
+    on(btn, 'click', function () {
+      var line = lines[Math.min(count, lines.length - 1)];
+      count += 1;
+      btn.classList.remove('is-poked');
+      void btn.offsetWidth;
+      btn.classList.add('is-poked');
+      clearTimeout(unpoke);
+      unpoke = setTimeout(function () { btn.classList.remove('is-poked'); }, 700);
+      if (!bubble) return;
+      bubble.hidden = true;
+      bubble.textContent = line;
+      void bubble.offsetWidth;
+      bubble.hidden = false;
+      if (note) note.style.visibility = 'hidden';
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(function () {
+        bubble.hidden = true;
+        if (note) note.style.visibility = '';
+      }, 2600);
+    });
   }
 
   /* ─────────────── boot ─────────────── */
@@ -617,7 +500,7 @@
   setupNav();
   setupMenu();
   setupActions();
-  setupMascot();
+  setupDeane();
   startEntrance();
 
   on(window, 'pagehide', function (e) {
