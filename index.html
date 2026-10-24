@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MOONROT ($ROT) — concept site</title>
+<meta name="description" content="MOONROT is a fictional meme coin concept built to demonstrate a launch website. No token exists.">
+<meta name="theme-color" content="#0b0c0a">
+<!-- Demo build: keep it out of search results until it is a real launch. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles.css">
+<script>
+  // Opt into the entrance sequence before first paint. If main.js never
+  // arrives, the safety timer still reveals the hero.
+  document.documentElement.classList.add('js');
+  setTimeout(function () { document.documentElement.classList.add('is-ready'); }, 2500);
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ───────────────────────── NAVIGATION ───────────────────────── -->
+<header class="nav" data-nav>
+  <div class="nav-inner wrap">
+    <a class="wordmark" href="#top" aria-label="MOONROT, back to top">
+      <svg class="wordmark-glyph" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="currentColor"/><circle cx="25" cy="8" r="6" style="fill:var(--ink)"/><circle cx="13" cy="15" r="4" style="fill:var(--ink)"/></svg>
+      <span data-cfg="brand.name">MOONROT</span>
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#about">About</a>
+      <a href="#tokenomics">Tokenomics</a>
+      <a href="#how-to-buy">How to Buy</a>
+      <a href="#community">Community</a>
+    </nav>
+    <button class="btn btn-acid nav-buy" type="button" data-buy>
+      <span>Buy <span data-cfg="brand.ticker">$ROT</span></span>
+    </button>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
+      <span class="nav-toggle-label">Menu</span>
+      <span class="nav-toggle-icon" aria-hidden="true"><i></i><i></i></span>
+    </button>
+  </div>
+</header>
+
+<div class="menu" id="mobile-menu" data-menu hidden>
+  <nav class="menu-inner wrap" aria-label="Sections">
+    <a href="#about" style="--i:0">About</a>
+    <a href="#tokenomics" style="--i:1">Tokenomics</a>
+    <a href="#how-to-buy" style="--i:2">How to Buy</a>
+    <a href="#community" style="--i:3">Community</a>
+    <button class="btn btn-acid btn-lg" type="button" data-buy style="--i:4">
+      <span>Buy <span data-cfg="brand.ticker">$ROT</span></span>
+    </button>
+    <p class="menu-note mono" style="--i:5">Concept site · no token exists</p>
+  </nav>
+</div>
+
+<main id="main">
+
+  <!-- ───────────────────────── HERO ───────────────────────── -->
+  <section class="hero" id="top" aria-labelledby="hero-title">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="hero-inner wrap">
+      <p class="hero-flag mono" data-enter style="--d:0">
+        <span class="flag-dot" aria-hidden="true"></span>
+        <span>Concept site · <span data-cfg="brand.ticker">$ROT</span> is not a real token</span>
+      </p>
+
+      <h1 class="hero-title" id="hero-title" data-headline>
+        <span class="line"><span class="line-inner">The internet</span></span>
+        <span class="line"><span class="line-inner">has a <em>new</em></span></span>
+        <span class="line"><span class="line-inner">problem.</span></span>
+      </h1>
+
+      <figure class="hero-mascot" data-parallax>
+        <button class="mascot-btn" type="button" data-mascot data-poke aria-label="Poke the moon">
+          <!-- MASCOT ART — replace via config.mascot.src, or swap this SVG. -->
+          <svg class="mascot" viewBox="0 0 600 600" role="img" aria-labelledby="mascot-title">
+            <title id="mascot-title">The MOONROT mascot: a cratered, half-rotten moon with one wide eye and a crooked grin</title>
+            <defs>
+              <radialGradient id="mr-body" cx="64%" cy="30%" r="78%">
+                <stop offset="0" stop-color="#f1f3e6"/>
+                <stop offset=".42" stop-color="#c9cfae"/>
+                <stop offset=".78" stop-color="#8f9a66"/>
+                <stop offset="1" stop-color="#55602e"/>
+              </radialGradient>
+              <radialGradient id="mr-shade" cx="70%" cy="30%" r="88%">
+                <stop offset=".5" stop-color="#0b0c0a" stop-opacity="0"/>
+                <stop offset=".86" stop-color="#0b0c0a" stop-opacity=".72"/>
+                <stop offset="1" stop-color="#0b0c0a" stop-opacity=".92"/>
+              </radialGradient>
+              <radialGradient id="mr-rot" cx="50%" cy="50%" r="50%">
+                <stop offset="0" stop-color="#a6c62a" stop-opacity=".85"/>
+                <stop offset="1" stop-color="#4d5a1f" stop-opacity="0"/>
+              </radialGradient>
+              <clipPath id="mr-clip"><circle cx="300" cy="300" r="220"/></clipPath>
+              <clipPath id="mr-eye-clip"><ellipse cx="330" cy="256" rx="66" ry="60"/></clipPath>
+              <clipPath id="mr-eye2-clip"><ellipse cx="458" cy="258" rx="32" ry="28"/></clipPath>
+              <!-- The worm lives above this line; below it is inside the crater. -->
+              <clipPath id="mr-worm-clip"><path d="M0 0H600V150H330A30 14 0 0 1 270 150H0Z"/></clipPath>
+              <mask id="mr-bite" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="600">
+                <rect width="600" height="600" fill="#fff"/>
+                <circle cx="470" cy="112" r="46" fill="#000"/>
+                <circle cx="512" cy="152" r="40" fill="#000"/>
+                <circle cx="434" cy="86" r="30" fill="#000"/>
+              </mask>
+            </defs>
+
+            <g class="m-float">
+              <!-- body -->
+              <g mask="url(#mr-bite)">
+                <circle cx="300" cy="300" r="220" fill="url(#mr-body)"/>
+                <g clip-path="url(#mr-clip)">
+                  <!-- rot -->
+                  <ellipse cx="420" cy="470" rx="120" ry="80" fill="url(#mr-rot)"/>
+                  <ellipse cx="470" cy="190" rx="70" ry="60" fill="url(#mr-rot)"/>
+                  <ellipse cx="150" cy="360" rx="90" ry="110" fill="url(#mr-rot)" opacity=".7"/>
+                  <path d="M372 470c18-22 52-30 78-14 22 14 14 40-10 46-20 6-30-6-44 2-16 8-36-14-24-34z" fill="#6f8423" opacity=".55"/>
+                  <path d="M120 300c14-12 36-6 40 10 6 18-12 22-6 38 6 18-20 26-34 10-14-16-16-44 0-58z" fill="#55602e" opacity=".55"/>
+                  <!-- craters -->
+                  <g fill="#8f9a66" stroke="#6b7548" stroke-width="3">
+                    <ellipse cx="182" cy="330" rx="30" ry="24"/>
+                    <ellipse cx="206" cy="452" rx="20" ry="16"/>
+                    <ellipse cx="424" cy="470" rx="26" ry="20"/>
+                    <ellipse cx="484" cy="324" rx="14" ry="12"/>
+                    <ellipse cx="214" cy="226" rx="16" ry="13"/>
+                  </g>
+                  <g fill="none" stroke="#e5e9d4" stroke-width="3" stroke-linecap="round" opacity=".55">
+                    <path d="M160 336a24 18 0 0 1 22-20"/>
+                    <path d="M404 470a20 15 0 0 1 18-14"/>
+                  </g>
+                  <!-- worm crater (back half) -->
+                  <ellipse cx="300" cy="150" rx="30" ry="14" fill="#3a4220"/>
+                  <!-- phase shadow, light from the upper right -->
+                  <circle cx="300" cy="300" r="220" fill="url(#mr-shade)"/>
+                </g>
+              </g>
+
+              <!-- worm -->
+              <g clip-path="url(#mr-worm-clip)">
+                <g class="m-worm">
+                  <path d="M296 156C292 120 300 96 284 74c-12-16-34-14-40 4" fill="none" stroke="#e3a294" stroke-width="22" stroke-linecap="round"/>
+                  <g stroke="#b9786b" stroke-width="3" stroke-linecap="round">
+                    <path d="M286 136l20 0"/><path d="M285 116l20-2"/><path d="M282 96l19-6"/>
+                  </g>
+                  <circle cx="246" cy="74" r="4" fill="#0b0c0a"/>
+                  <circle cx="258" cy="70" r="4" fill="#0b0c0a"/>
+                </g>
+              </g>
+              <!-- worm crater (front lip) -->
+              <path d="M270 150a30 14 0 0 0 60 0" fill="none" stroke="#6b7548" stroke-width="4"/>
+
+              <!-- crumbs from the bite -->
+              <g fill="#c9cfae">
+                <path d="M548 74l12 4-4 12-12-2z"/>
+                <path d="M566 120l8 2-2 9-9-3z"/>
+                <path d="M520 44l7 3-3 7-7-3z"/>
+              </g>
+
+              <!-- big eye -->
+              <g class="m-eye">
+                <ellipse cx="330" cy="256" rx="66" ry="60" fill="#f4f6ea" stroke="#20241a" stroke-width="5"/>
+                <g fill="none" stroke="#c4705b" stroke-width="2.5" stroke-linecap="round" opacity=".75">
+                  <path d="M268 246c12 2 18 8 22 16"/>
+                  <path d="M272 278c10-2 16-8 20-4"/>
+                  <path d="M392 236c-10 2-16 8-18 14"/>
+                  <path d="M390 282c-8 0-14-6-20-4"/>
+                </g>
+                <g class="m-pupil" data-pupil="18">
+                  <circle cx="318" cy="264" r="29" fill="#c8ff1f" stroke="#5f7d00" stroke-width="3"/>
+                  <circle cx="318" cy="264" r="13" fill="#0b0c0a"/>
+                  <circle cx="309" cy="254" r="5" fill="#fff"/>
+                </g>
+                <g clip-path="url(#mr-eye-clip)">
+                  <!-- resting upper lid: a little heavy, a little tired -->
+                  <path d="M258 214h144v14c-36-12-104-12-144 8z" fill="#b8bf98"/>
+                  <rect class="m-lid" x="262" y="194" width="136" height="126" fill="#b8bf98"/>
+                </g>
+                <path d="M266 232c36-20 98-20 130-2" fill="none" stroke="#20241a" stroke-width="5" stroke-linecap="round"/>
+              </g>
+
+              <!-- small eye, permanently half shut -->
+              <g class="m-eye2">
+                <ellipse cx="458" cy="258" rx="32" ry="28" fill="#e9ecdc" stroke="#20241a" stroke-width="4"/>
+                <g class="m-pupil" data-pupil="9">
+                  <circle cx="452" cy="266" r="13" fill="#c8ff1f" stroke="#5f7d00" stroke-width="2"/>
+                  <circle cx="452" cy="266" r="6" fill="#0b0c0a"/>
+                </g>
+                <g clip-path="url(#mr-eye2-clip)">
+                  <rect x="420" y="226" width="80" height="30" fill="#b3ba90"/>
+                  <rect class="m-lid" x="420" y="226" width="80" height="62" fill="#b3ba90"/>
+                </g>
+                <path d="M428 256c18-6 42-6 60 0" fill="none" stroke="#20241a" stroke-width="4" stroke-linecap="round"/>
+              </g>
+
+              <!-- grin -->
+              <path d="M262 380c48 44 138 44 200-28-18 62-90 106-162 88-20-8-34-30-38-60z" fill="#171a12" stroke="#20241a" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M362 418l20 0-2 24-16-2z" fill="#f4f6ea" stroke="#20241a" stroke-width="2.5" stroke-linejoin="round"/>
+              <path d="M300 432c22 10 50 10 70 2-18 12-48 14-70-2z" fill="#a85c55" opacity=".8"/>
+
+              <!-- drool -->
+              <path d="M270 402c-4 26-8 52 0 70 8-18 12-44 12-66z" fill="#c8ff1f"/>
+              <circle class="m-drop" cx="276" cy="484" r="7" fill="#c8ff1f"/>
+
+              <!-- the fly that follows the smell -->
+              <g transform="rotate(-14 300 300)">
+                <g class="m-fly">
+                  <ellipse cx="0" cy="0" rx="9" ry="6" fill="#0b0c0a" stroke="#e8eadf" stroke-width="1.5"/>
+                  <g class="m-wings" fill="#e8eadf" opacity=".65">
+                    <ellipse cx="-2" cy="-8" rx="4" ry="8"/>
+                    <ellipse cx="-2" cy="8" rx="4" ry="8"/>
+                  </g>
+                  <animateMotion dur="13s" repeatCount="indefinite" rotate="auto" path="M30 300a270 78 0 1 0 540 0a270 78 0 1 0-540 0"/>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </button>
+        <figcaption class="mascot-cap mono">
+          <span>Fig. 01 — Lunar specimen.</span>
+          <span>Condition: questionable.</span>
+          <span class="poke-count" data-poke-count aria-live="polite">Tap it. It doesn’t mind.</span>
+        </figcaption>
+      </figure>
+
+      <div class="hero-foot">
+        <p class="hero-copy" data-cfg="hero.copy" data-enter style="--d:5">Someone left the moon out too long. It went soft, grew an eye and started posting. MOONROT is what happens when the thing everyone promised turns up late and slightly off.</p>
+        <div class="cta-row" data-enter style="--d:6">
+          <button class="btn btn-acid btn-lg" type="button" data-buy>
+            <span data-cfg="hero.primaryCta">Buy $ROT</span>
+            <svg class="btn-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+          </button>
+          <a class="btn btn-ghost btn-lg" href="#community"><span data-cfg="hero.secondaryCta">Join the cult</span></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- marquee -->
+    <div class="marquee" data-enter style="--d:7" aria-label="Brand slogans">
+      <div class="marquee-track" data-marquee>
+        <ul class="marquee-list mono">
+          <li>Demo concept</li><li>No token exists</li><li>The moon is off</li><li>Do not refrigerate</li><li>Not financial advice</li><li>Best before: never</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── ABOUT / LORE ───────────────────────── -->
+  <section class="about" id="about" aria-labelledby="about-title">
+    <div class="about-craters" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="wrap about-grid">
+      <div class="about-head">
+        <p class="eyebrow mono" data-cfg="about.eyebrow" data-reveal>The lore</p>
+        <h2 class="about-title display" id="about-title" data-cfg="about.headline" data-reveal>Everyone promised the moon. Nobody checked the date on it.</h2>
+      </div>
+      <ol class="chapters" data-chapters>
+        <!-- built from config.about.chapters -->
+      </ol>
+    </div>
+    <div class="wrap pull">
+      <p class="pull-quote display" data-reveal><span data-cfg="about.pullQuote">Ripe is a feeling.</span></p>
+      <div class="stamp" aria-hidden="true" data-reveal>
+        <svg viewBox="0 0 200 200">
+          <defs><path id="stamp-ring" d="M100 100m-72 0a72 72 0 1 1 144 0a72 72 0 1 1-144 0"/></defs>
+          <circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" stroke-width="2"/>
+          <circle cx="100" cy="100" r="52" fill="none" stroke="currentColor" stroke-width="2"/>
+          <text class="stamp-text"><textPath href="#stamp-ring">CERTIFIED ROTTEN · BATCH 000 · DO NOT EAT ·</textPath></text>
+          <text x="100" y="112" text-anchor="middle" class="stamp-mid">ROT</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── TOKENOMICS ───────────────────────── -->
+  <section class="tokenomics" id="tokenomics" aria-labelledby="tok-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow mono" data-reveal>Tokenomics</p>
+        <h2 class="sec-title display" id="tok-title" data-cfg="tokenomics.headline" data-reveal>How the rot is portioned</h2>
+        <p class="tape mono" data-reveal><span>Illustrative demo values — replace before launch</span></p>
+      </div>
+
+      <div class="tok-grid">
+        <div class="tok-chart" data-reveal>
+          <svg class="donut" viewBox="0 0 400 400" aria-hidden="true" data-donut></svg>
+          <div class="donut-center">
+            <span class="donut-num display" data-cfg="tokenomics.totalSupply">1,000,000,000</span>
+            <span class="donut-label mono" data-cfg="tokenomics.supplyLabel">Total supply (illustrative)</span>
+          </div>
+        </div>
+
+        <ul class="ledger" data-ledger aria-label="Token allocation, illustrative">
+          <!-- built from config.tokenomics.allocations -->
+        </ul>
+      </div>
+
+      <dl class="facts" data-facts data-reveal>
+        <!-- built from config.tokenomics.facts -->
+      </dl>
+
+      <div class="contract" data-reveal>
+        <div class="contract-text">
+          <span class="contract-label mono">Contract address</span>
+          <code class="contract-value" data-contract>Not yet published</code>
+          <span class="contract-note mono" data-cfg="contract.network">[Network to be confirmed]</span>
+        </div>
+        <button class="btn btn-ghost" type="button" data-copy-contract>Copy address</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── HOW TO BUY ───────────────────────── -->
+  <section class="buy" id="how-to-buy" aria-labelledby="buy-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow mono" data-reveal>How to buy</p>
+        <h2 class="sec-title display" id="buy-title" data-cfg="howToBuy.headline" data-reveal>Three steps to catching it</h2>
+        <p class="tape mono" data-reveal><span>Illustrative steps — network and official listing not yet set</span></p>
+      </div>
+      <ol class="steps" data-steps>
+        <!-- built from config.howToBuy.steps -->
+      </ol>
+      <p class="buy-warn" data-reveal>
+        We will never DM you first, ask for your recovery phrase, or ask you to connect a wallet to “claim” anything.
+        The only contract address that counts is the one published here, once there is one.
+      </p>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── COMMUNITY ───────────────────────── -->
+  <section class="community" id="community" aria-labelledby="com-title">
+    <div class="wrap com-grid">
+      <div class="com-head">
+        <p class="eyebrow mono" data-reveal>Community</p>
+        <h2 class="com-title display" id="com-title" data-reveal>
+          <span data-com-line>Join</span>
+          <span data-com-line>the cult.</span>
+        </h2>
+        <p class="com-sub" data-reveal><strong data-cfg="community.subline">Bring snacks. Ignore the smell.</strong> <span data-cfg="community.copy">The moon is loud online. Come for the memes, stay because the door is stuck.</span></p>
+      </div>
+      <ul class="socials" data-socials>
+        <!-- built from config.community.socials -->
+      </ul>
+    </div>
+    <div class="peek" aria-hidden="true" data-peek></div>
+  </section>
+</main>
+
+<!-- ───────────────────────── FOOTER ───────────────────────── -->
+<footer class="footer">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="wordmark" href="#top">
+        <svg class="wordmark-glyph" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="currentColor"/><circle cx="25" cy="8" r="6" style="fill:var(--ink)"/><circle cx="13" cy="15" r="4" style="fill:var(--ink)"/></svg>
+        <span data-cfg="brand.name">MOONROT</span>
+      </a>
+      <p class="foot-tag" data-cfg="brand.tagline">The moon went bad. We moved in.</p>
+    </div>
+    <nav class="foot-nav" aria-label="Footer">
+      <p class="foot-h mono">Sections</p>
+      <a href="#about">About</a>
+      <a href="#tokenomics">Tokenomics</a>
+      <a href="#how-to-buy">How to Buy</a>
+      <a href="#community">Community</a>
+    </nav>
+    <div class="foot-social">
+      <p class="foot-h mono">Socials</p>
+      <ul data-foot-socials><!-- built from config --></ul>
+    </div>
+    <div class="foot-legal">
+      <p class="foot-h mono">Read this</p>
+      <p data-cfg="footer.disclaimer">MOONROT and $ROT are fictional placeholder branding created to demonstrate a website design. No token, contract, trading market, liquidity, partnership or community exists. All figures are illustrative.</p>
+      <p data-cfg="footer.risk">Cryptocurrencies, and meme coins in particular, are highly speculative and volatile. You can lose all of the money you put in. Nothing on this site is financial, investment or legal advice. Do your own research.</p>
+    </div>
+  </div>
+  <div class="foot-mark display" aria-hidden="true" data-cfg="brand.name">MOONROT</div>
+  <div class="wrap foot-base mono">
+    <span>Concept work · <span data-year>2026</span></span>
+    <a href="#top">Back to top ↑</a>
+  </div>
+</footer>
+
+<!-- Demo notice: what every buy button opens while config.demo is true. -->
+<dialog class="notice" data-notice aria-labelledby="notice-title" aria-describedby="notice-body">
+  <div class="notice-inner">
+    <p class="notice-tag mono">Demo notice</p>
+    <h2 class="notice-title display" id="notice-title" data-cfg="demoNotice.title">This one is for show.</h2>
+    <p class="notice-body" id="notice-body" data-cfg="demoNotice.body">$ROT does not exist. This site is a design demonstration, so there is nothing to buy, no wallet will be connected and no transaction will be made.</p>
+    <form method="dialog">
+      <button class="btn btn-acid" type="submit" data-cfg="demoNotice.close" autofocus>Got it</button>
+    </form>
+  </div>
+</dialog>
+
+<div class="toast mono" role="status" aria-live="polite" data-toast hidden></div>
+
+<script src="config.js"></script>
+<script src="main.js" defer></script>
+</body>
+</html>

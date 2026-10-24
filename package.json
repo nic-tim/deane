@@ -1,0 +1,15 @@
+{
+  "name": "moonrot-concept-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MOONROT ($ROT): a fictional meme coin launch site built as a design demonstration.",
+  "scripts": {
+    "start": "node serve.js",
+    "test": "node tests/qa.js",
+    "build:preview": "node scripts/build-preview.js",
+    "check": "node --check main.js && node --check config.js && node --check serve.js"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
