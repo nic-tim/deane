@@ -16,8 +16,10 @@ const headScript = head.match(/<script>[\s\S]*?<\/script>/)[0];
 const title = head.match(/<title>[\s\S]*?<\/title>/)[0];
 
 body = body
-  .replace('<script src="config.js"></script>', `<script>\n${read('config.js')}\n</script>`)
-  .replace('<script src="main.js" defer></script>', `<script>\n${read('main.js')}\n</script>`);
+  // Function replacers: the scripts contain `$'`-style sequences that a
+  // replacement string would treat as patterns.
+  .replace('<script src="config.js"></script>', () => `<script>\n${read('config.js')}\n</script>`)
+  .replace('<script src="main.js" defer></script>', () => `<script>\n${read('main.js')}\n</script>`);
 
 const out = [
   title,
