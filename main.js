@@ -36,6 +36,25 @@
     return node;
   };
   var isPlaceholder = function (v) { return typeof v === 'string' && /\[[^\]]*\]/.test(v); };
+  // Fill {network}, {nativeCoin} and {venue} from the one place they are set,
+  // so the guide can never disagree with the rest of the page.
+  var fill = function (str) {
+    var vars = {
+      network: get('network.name'),
+      nativeCoin: get('network.nativeCoin'),
+      venue: get('links.buy.venue'),
+    };
+    return String(str).replace(/\{(\w+)\}/g, function (m, k) { return vars[k] != null ? vars[k] : m; });
+  };
+  // Text with any [placeholder] parts greyed out.
+  var placeholderText = function (str) {
+    var frag = document.createDocumentFragment();
+    String(str).split(/(\[[^\]]*\])/).forEach(function (part) {
+      if (!part) return;
+      frag.appendChild(/^\[.*\]$/.test(part) ? el('span', { class: 'is-placeholder', text: part }) : document.createTextNode(part));
+    });
+    return frag;
+  };
 
   /* ─────────────── 1. Apply config ─────────────── */
 
@@ -65,8 +84,11 @@
     buildMarquee();
     buildQuickLinks();
     buildNotList();
-    buildToken();
+    buildContract();
+    buildSteps();
+    buildReceipt();
     buildTabs();
+    buildFootLinks();
     buildArt();
   }
 
@@ -130,6 +152,7 @@
     var list = $('[data-quick-links]');
     if (!list) return;
     list.textContent = '';
+    list.appendChild(el('li', {}, [el('a', { href: '#buy', class: 'quick-guide', text: 'How to buy ↓' })]));
     ['chart', 'x', 'telegram'].forEach(function (key) {
       var link = (cfg.links || {})[key];
       if (!link) return;
@@ -151,27 +174,104 @@
     });
   }
 
-  function buildToken() {
-    var rows = $('[data-receipt-rows]');
-    if (rows && Array.isArray(get('token.rows'))) {
-      rows.textContent = '';
-      get('token.rows').forEach(function (r) {
-        rows.appendChild(el('div', {}, [
-          el('dt', { text: r.label }),
-          el('dd', { class: isPlaceholder(r.value) ? 'is-placeholder' : '', text: r.value }),
-        ]));
-      });
-    }
-    var howto = $('[data-howto]');
-    if (howto && Array.isArray(get('token.howTo'))) {
-      howto.textContent = '';
-      get('token.howTo').forEach(function (t) { howto.appendChild(el('li', { text: t })); });
-    }
+  // The contract address and network, wherever they appear.
+  function buildContract() {
     var addr = get('contract.address') || '';
-    $$('[data-contract], [data-contract-short]').forEach(function (n) {
+    $$('[data-contract]').forEach(function (n) {
       var short = n.hasAttribute('data-contract-short') && addr.length > 14;
       n.textContent = addr ? (short ? addr.slice(0, 6) + '…' + addr.slice(-4) : addr) : 'Not published yet';
       n.classList.toggle('is-placeholder', !addr);
+      if (addr) n.setAttribute('title', addr);
+    });
+    $$('[data-network]').forEach(function (n) {
+      var name = get('network.name') || '';
+      n.textContent = name;
+      n.classList.toggle('is-placeholder', isPlaceholder(name));
+    });
+  }
+
+  function copyButton(label) {
+    return el('button', { class: 'copy-btn mono', type: 'button', 'data-copy-contract': '', text: label || 'Copy' });
+  }
+
+  // Beginner guide; steps with an action get the real control inline, so the
+  // reader never has to scroll away to copy the address or find the buy link.
+  function buildSteps() {
+    var list = $('[data-steps]');
+    var steps = get('howToBuy.steps');
+    if (!list || !Array.isArray(steps)) return;
+    list.textContent = '';
+    steps.forEach(function (st, i) {
+      var body = el('div', { class: 'step-body' }, [
+        el('h3', {}, [placeholderText(fill(st.title))]),
+        el('p', {}, [placeholderText(fill(st.body))]),
+      ]);
+      if (st.action === 'copy') {
+        var ca = el('div', { class: 'step-ca' }, [
+          el('code', { class: 'step-ca-value', 'data-contract': '', 'data-contract-short': '' }),
+          copyButton('Copy'),
+        ]);
+        body.appendChild(ca);
+      }
+      if (st.action === 'buy') {
+        var buy = el('button', { class: 'btn-buy step-buy', type: 'button', 'data-buy': '' }, [
+          document.createTextNode(get('links.buy.label') || 'Buy'),
+        ]);
+        body.appendChild(buy);
+      }
+      var li = el('li', { class: 'step', 'data-reveal': '' }, [el('span', { class: 'step-num', 'aria-hidden': 'true', text: String(i + 1) }), body]);
+      li.style.setProperty('--d', i);
+      list.appendChild(li);
+    });
+  }
+
+  // Official details: one card a careful buyer can check everything against.
+  function buildReceipt() {
+    var rows = $('[data-receipt-rows]');
+    if (rows) {
+      rows.textContent = '';
+      var addRow = function (label, valueNode, extra) {
+        var dd = el('dd', {}, [valueNode]);
+        if (extra) dd.appendChild(extra);
+        rows.appendChild(el('div', {}, [el('dt', { text: label }), dd]));
+      };
+      addRow('Ticker', document.createTextNode(get('brand.ticker') || ''));
+      addRow('Network', el('span', { 'data-network': '' }));
+      addRow('Contract', el('span', { 'data-contract': '', 'data-contract-short': '' }), copyButton('Copy'));
+      addRow('Buy on', placeholderText(get('links.buy.venue') || ''));
+      (get('token.rows') || []).forEach(function (r) {
+        var proof = r.proof ? el('a', { class: 'r-proof', href: r.proof, target: '_blank', rel: 'noopener noreferrer', text: 'verify ↗' }) : null;
+        addRow(r.label, placeholderText(r.value), proof);
+      });
+      buildContract();
+    }
+    var links = $('[data-receipt-links]');
+    if (links) {
+      links.textContent = '';
+      ['buy', 'chart', 'explorer'].forEach(function (key) {
+        var link = (cfg.links || {})[key];
+        if (!link) return;
+        var label = key === 'buy' ? 'Buy' : link.label;
+        var kids = [document.createTextNode(label + (link.url ? ' ↗' : ''))];
+        if (!link.url) kids.push(el('span', { class: 'tbd', text: 'TBD' }));
+        var node = key === 'buy' && !link.url
+          ? el('button', { type: 'button', 'data-buy': '' }, kids)
+          : linkNode(key, '', kids);
+        links.appendChild(el('li', {}, [node]));
+      });
+    }
+  }
+
+  function buildFootLinks() {
+    var list = $('[data-foot-links]');
+    if (!list) return;
+    list.textContent = '';
+    ['x', 'telegram', 'chart', 'explorer'].forEach(function (key) {
+      var link = (cfg.links || {})[key];
+      if (!link) return;
+      var kids = [document.createTextNode(link.label + (link.url ? ' ↗' : ''))];
+      if (!link.url) kids.push(el('span', { class: 'tbd', text: 'TBD' }));
+      list.appendChild(el('li', {}, [linkNode(key, '', kids)]));
     });
   }
 
@@ -265,29 +365,15 @@
   function setupNav() {
     var nav = $('[data-nav]');
     if (!nav) return;
-    var lastY = window.scrollY;
     var ticking = false;
-    // A jump to a section scrolls downward but is not the reader scrolling
-    // away from the nav; keep it on screen until the jump has finished.
-    var holdUntil = 0;
-    on(document, 'click', function (e) {
-      if (e.target.closest('a[href^="#"]')) holdUntil = Date.now() + 1500;
-    });
+    // The nav never hides: it carries the Buy button, which must stay one tap away.
     var update = function () {
       ticking = false;
-      var y = window.scrollY;
-      nav.classList.toggle('is-scrolled', y > 24);
-      var menuOpen = document.body.classList.contains('menu-open');
-      var focusInside = nav.contains(document.activeElement);
-      var holding = Date.now() < holdUntil;
-      if (!menuOpen && !focusInside && !holding && y > 480 && y > lastY + 6) nav.classList.add('is-hidden');
-      else if (y < lastY - 6 || y < 480) nav.classList.remove('is-hidden');
-      lastY = y;
+      nav.classList.toggle('is-scrolled', window.scrollY > 24);
     };
     on(window, 'scroll', function () {
       if (!ticking) { ticking = true; requestAnimationFrame(update); }
     }, { passive: true });
-    on(nav, 'focusin', function () { nav.classList.remove('is-hidden'); });
     update();
 
     var links = $$('.nav-links a');
@@ -392,7 +478,9 @@
         toast(ph.getAttribute('data-placeholder-link') + ' link isn’t posted yet. It goes here once it’s official.');
         return;
       }
-      if (e.target.closest('[data-copy-contract]')) copyContract();
+      var copyBtn = e.target.closest('[data-copy-contract]');
+      if (copyBtn) copyContract(copyBtn);
+      if (e.target.closest('[data-close-notice]') && dialog && dialog.open) dialog.close();
     });
     on(document, 'animationend', function (e) {
       if (e.target.classList && e.target.classList.contains('is-torn')) e.target.classList.remove('is-torn');
@@ -400,10 +488,17 @@
     if (dialog) on(dialog, 'click', function (e) { if (e.target === dialog) dialog.close(); });
   }
 
-  function copyContract() {
+  function copyContract(btn) {
     var addr = get('contract.address');
-    if (!addr) { toast('No contract address has been posted, so there’s nothing to copy.'); return; }
-    var done = function () { toast('Copied. Check every character before you use it.'); };
+    if (!addr) { toast('No contract address has been posted yet, so there’s nothing to copy.'); return; }
+    var done = function () {
+      toast('Contract copied. Check the first and last characters before you swap.');
+      if (!btn) return;
+      var label = btn.textContent;
+      btn.textContent = 'Copied ✓';
+      btn.classList.add('is-copied');
+      setTimeout(function () { btn.textContent = label; btn.classList.remove('is-copied'); }, 1800);
+    };
     var select = function () {
       var code = $('[data-contract]');
       var range = document.createRange();

@@ -99,7 +99,7 @@ const check = async (name, fn) => {
       assert.deepEqual(missing, []);
     });
 
-    for (const id of ['who', 'token', 'find']) {
+    for (const id of ['who', 'buy', 'find']) {
       await check(`nav link scrolls to #${id}`, async () => {
         await page.evaluate(() => scrollTo(0, 0));
         await page.waitForTimeout(200);
@@ -130,7 +130,7 @@ const check = async (name, fn) => {
     });
 
     await check('placeholder links never navigate and say they are placeholders', async () => {
-      const real = await page.$$eval('[data-quick-links] a, [data-tabs] a', els => els.length);
+      const real = await page.$$eval('[data-quick-links] a:not([href^="#"]), [data-tabs] a, [data-foot-links] a, [data-receipt-links] a', els => els.length);
       assert.equal(real, 0);
       await page.click('[data-quick-links] button >> nth=0');
       assert.match(await page.textContent('[data-toast]'), /isn’t posted yet/);
@@ -152,12 +152,55 @@ const check = async (name, fn) => {
       assert.equal((await page.textContent('[data-contract]')).trim(), 'Not published yet');
       await page.click('[data-copy-contract]');
       assert.match(await page.textContent('[data-toast]'), /No contract address has been posted/);
+      const buttons = await page.$$eval('[data-copy-contract]', b => b.length);
+      assert.ok(buttons >= 3, `expected copy in hero, steps and receipt, got ${buttons}`);
+    });
+
+    await check('network and contract read the same everywhere they appear', async () => {
+      const r = await page.evaluate(() => ({
+        nets: [...new Set([...document.querySelectorAll('[data-network]')].map(n => n.textContent.trim()))],
+        cas: [...new Set([...document.querySelectorAll('[data-contract]')].map(n => n.textContent.trim()))],
+        netCount: document.querySelectorAll('[data-network]').length,
+        steps: document.querySelector('[data-steps]').innerText,
+      }));
+      assert.ok(r.netCount >= 2);
+      assert.deepEqual(r.nets, ['[Network TBD]']);
+      assert.deepEqual(r.cas, ['Not published yet']);
+      assert.match(r.steps, /\[Network TBD\]/);
+      assert.doesNotMatch(r.steps, /\{\w+\}/, 'unfilled {placeholder} in the guide');
+    });
+
+    await check('buy guide: four steps, copy and buy actions inline', async () => {
+      assert.equal(await page.$$eval('.step', s => s.length), 4);
+      assert.equal(await page.$$eval('.step:nth-child(3) [data-copy-contract]', s => s.length), 1);
+      assert.equal(await page.$$eval('.step:nth-child(4) [data-buy]', s => s.length), 1);
+      await page.click('.step:nth-child(4) [data-buy]');
+      assert.ok(await page.isVisible('[data-notice]'));
+      await page.click('[data-notice] [data-close-notice]');
+      await page.waitForTimeout(1200);
+      assert.ok(!(await page.isVisible('[data-notice]')));
+      const top = await page.evaluate(() => document.getElementById('buy').getBoundingClientRect().top);
+      assert.ok(Math.abs(top - 68) < 40, `guide link should land on #buy, top ${top}`);
+    });
+
+    await check('Buy stays in reach after scrolling down', async () => {
+      await page.evaluate(() => scrollTo(0, document.body.scrollHeight * .6));
+      await page.waitForTimeout(500);
+      assert.ok(await page.isVisible('.nav-buy'));
+      const y = await page.evaluate(() => document.querySelector('.nav-buy').getBoundingClientRect().top);
+      assert.ok(y >= 0 && y < 80, `nav buy at ${y}`);
+    });
+
+    await check('footer lists the official links', async () => {
+      const t = await page.textContent('[data-foot-links]');
+      ['X', 'Telegram', 'Chart', 'Explorer'].forEach(l => assert.match(t, new RegExp(l)));
     });
 
     await check('placeholder token values are marked as placeholders', async () => {
-      const r = await page.$$eval('.r-rows dd', dds => dds.map(d => [d.textContent, d.classList.contains('is-placeholder')]));
-      assert.ok(r.length >= 4);
-      r.forEach(([t, flagged]) => assert.equal(flagged, /\[/.test(t), `"${t}" flagged=${flagged}`));
+      const r = await page.$$eval('.r-rows dd', dds => dds.map(d => [d.textContent.replace('Copy', '').trim(), !!d.querySelector('.is-placeholder')]));
+      assert.ok(r.length >= 6);
+      r.forEach(([t, flagged]) => assert.equal(flagged, /\[|Not published/.test(t), `"${t}" flagged=${flagged}`));
+      assert.equal(await page.$$eval('.r-proof', a => a.length), 0, 'no verify links without proof');
     });
 
     await check('poking Deane makes him talk, in order', async () => {
@@ -193,7 +236,7 @@ const check = async (name, fn) => {
       await m.click('[data-menu-toggle]');
       await m.waitForTimeout(700);
       assert.equal(await m.getAttribute('[data-menu-toggle]', 'aria-expanded'), 'true');
-      assert.ok(await m.isVisible('#mobile-menu a[href="#token"]'));
+      assert.ok(await m.isVisible('#mobile-menu a[href="#buy"]'));
       for (let i = 0; i < 10; i++) await m.keyboard.press('Tab');
       assert.ok(await m.evaluate(() => !!document.activeElement.closest('#mobile-menu, [data-menu-toggle]')));
       await m.keyboard.press('Escape');
@@ -201,6 +244,12 @@ const check = async (name, fn) => {
       assert.equal(await m.getAttribute('[data-menu-toggle]', 'aria-expanded'), 'false');
       assert.ok(await m.evaluate(() => document.getElementById('mobile-menu').hidden));
       assert.ok(await m.evaluate(() => document.activeElement.matches('[data-menu-toggle]')));
+    });
+    await check('mobile: Buy is in the nav bar without opening the menu', async () => {
+      assert.ok(await m.isVisible('.nav-buy'));
+      await m.tap('.nav-buy');
+      assert.ok(await m.isVisible('[data-notice]'));
+      await m.keyboard.press('Escape');
     });
     await check('mobile: menu link closes the menu and lands on the section', async () => {
       await m.click('[data-menu-toggle]');
@@ -242,6 +291,60 @@ const check = async (name, fn) => {
       assert.equal(s.tape, 'none');
     });
     await r.close();
+
+    // ── Go-live rehearsal: a test config with every official field filled in ──
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] });
+    const TEST_CA = 'TEST-ADDRESS-NOT-REAL-0001';
+    await ctx.route('**/config.js', async route => {
+      const res = await route.fetch();
+      let body = await res.text();
+      body = body.replace('preview: true', 'preview: false')
+        .replace("address: ''", `address: '${TEST_CA}'`)
+        .replace("name: '[Network TBD]'", "name: 'Testnet'")
+        .replace("nativeCoin: '[native coin TBD]'", "nativeCoin: 'TEST'")
+        .replace("venue: '[DEX TBD]', url: ''", "venue: 'TestSwap', url: 'https://example.com/buy'")
+        .replace("label: 'Chart', url: ''", "label: 'Chart', url: 'https://example.com/chart'")
+        .replace("label: 'Explorer', url: ''", "label: 'Explorer', url: 'https://example.com/explorer'")
+        .replace("handle: '[handle TBD]', url: ''", "handle: '@test', url: 'https://example.com/x'")
+        .replace("handle: '[group TBD]', url: ''", "handle: 'test', url: 'https://example.com/tg'")
+        .replace("{ label: 'Supply', value: '[TBD]', proof: '' }", "{ label: 'Supply', value: '1,000', proof: 'https://example.com/supply' }")
+        .replace("{ label: 'Buy / sell tax', value: '[TBD]', proof: '' }", "{ label: 'Buy / sell tax', value: '0 / 0', proof: '' }");
+      await route.fulfill({ response: res, body });
+    });
+    await ctx.route('https://example.com/**', route => route.fulfill({ status: 200, body: 'ok' }));
+    const live = await ctx.newPage();
+    await live.goto(BASE, { waitUntil: 'networkidle' });
+    await check('live config: buy buttons open the official listing in a new tab', async () => {
+      const [popup] = await Promise.all([live.waitForEvent('popup'), live.click('.nav-buy')]);
+      assert.equal(popup.url(), 'https://example.com/buy');
+      await popup.close();
+      assert.ok(!(await live.isVisible('[data-notice]')));
+    });
+    await check('live config: copy puts the exact address on the clipboard', async () => {
+      await live.click('.hero [data-copy-contract]');
+      assert.equal(await live.evaluate(() => navigator.clipboard.readText()), TEST_CA);
+      assert.match(await live.textContent('.hero .ca-copy'), /Copied/);
+    });
+    await check('live config: real links, same values everywhere, no preview labels', async () => {
+      const r = await live.evaluate(() => ({
+        nets: [...new Set([...document.querySelectorAll('[data-network]')].map(n => n.textContent.trim()))],
+        cas: [...new Set([...document.querySelectorAll('[data-contract]:not([data-contract-short])')].map(n => n.textContent.trim()))],
+        tabs: [...document.querySelectorAll('.tab')].map(a => a.getAttribute('href')),
+        explorer: [...document.querySelectorAll('[data-receipt-links] a')].map(a => a.getAttribute('href')),
+        previewShown: [...document.querySelectorAll('[data-preview-only]')].some(n => !n.hidden),
+        brackets: /\[[^\]]*TBD[^\]]*\]/.test(document.body.innerText),
+        guide: document.querySelector('[data-steps]').innerText,
+      }));
+      assert.deepEqual(r.nets, ['Testnet']);
+      assert.deepEqual(r.cas, ['TEST-ADDRESS-NOT-REAL-0001']);
+      assert.deepEqual(r.tabs, ['https://example.com/x', 'https://example.com/tg', 'https://example.com/chart']);
+      assert.ok(r.explorer.includes('https://example.com/explorer'));
+      assert.equal(r.previewShown, false);
+      assert.equal(r.brackets, false, 'a [TBD] placeholder is still visible');
+      assert.match(r.guide, /swap on testswap/i);
+      assert.deepEqual(await live.$$eval('.r-proof', a => a.map(x => x.getAttribute('href'))), ['https://example.com/supply']);
+    });
+    await ctx.close();
 
     // ── No JS ──
     const n = await browser.newPage({ viewport: { width: 1440, height: 900 }, javaScriptEnabled: false });

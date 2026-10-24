@@ -29,11 +29,11 @@
       <span data-cfg="brand.name">DEANE</span>
     </a>
     <nav class="nav-links" aria-label="Sections">
-      <a href="#who">Who is Deane</a>
-      <a href="#token" data-cfg="brand.ticker">$DEANE</a>
-      <a href="#find">Find him</a>
+      <a href="#who">Who’s Deane</a>
+      <a href="#buy">How to buy</a>
+      <a href="#find">Community</a>
     </nav>
-    <button class="btn-buy" type="button" data-buy><span data-cfg="links.buy.label">Buy $DEANE</span></button>
+    <button class="btn-buy nav-buy" type="button" data-buy><span data-cfg="links.buy.label">Buy $DEANE</span></button>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
       <span class="nav-toggle-label">Menu</span>
       <span class="nav-toggle-icon" aria-hidden="true"><i></i><i></i></span>
@@ -43,9 +43,9 @@
 
 <div class="menu" id="mobile-menu" data-menu hidden>
   <nav class="menu-inner wrap" aria-label="Sections">
-    <a href="#who" style="--i:0">Who is Deane</a>
-    <a href="#token" style="--i:1" data-cfg="brand.ticker">$DEANE</a>
-    <a href="#find" style="--i:2">Find him</a>
+    <a href="#who" style="--i:0">Who’s Deane</a>
+    <a href="#buy" style="--i:1">How to buy</a>
+    <a href="#find" style="--i:2">Community</a>
     <button class="btn-buy btn-buy-lg" type="button" data-buy style="--i:3"><span data-cfg="links.buy.label">Buy $DEANE</span></button>
   </nav>
 </div>
@@ -136,8 +136,9 @@
     </div>
 
     <div class="hero-bar wrap" data-enter style="--d:6">
-      <div class="ca">
+      <div class="ca" role="group" aria-label="Official contract address">
         <span class="ca-label mono">CA</span>
+        <span class="ca-net mono" data-network>[Network TBD]</span>
         <code class="ca-value" data-contract>Not published yet</code>
         <button class="ca-copy mono" type="button" data-copy-contract>Copy</button>
       </div>
@@ -168,34 +169,28 @@
     </div>
   </section>
 
-  <!-- ───────────── TOKEN ───────────── -->
-  <section class="token" id="token" aria-labelledby="token-title">
-    <div class="wrap token-grid">
-      <div class="token-text">
-        <p class="eyebrow mono" data-cfg="brand.ticker" data-reveal>$DEANE</p>
-        <h2 class="sec-title" id="token-title" data-cfg="token.title" data-reveal>The boring part.</h2>
-        <p class="token-copy" data-cfg="token.copy" data-reveal>Real numbers go here once they’re real. Until then, everything on the receipt is a placeholder.</p>
-        <div class="howto" data-reveal>
-          <p class="howto-h mono">When it’s live</p>
-          <ol data-howto><!-- built from config.token.howTo --></ol>
-        </div>
+  <!-- ───────────── HOW TO BUY + OFFICIAL DETAILS ───────────── -->
+  <section class="buy" id="buy" aria-labelledby="buy-title">
+    <div class="wrap buy-grid">
+      <div class="buy-main">
+        <h2 class="sec-title" id="buy-title" data-cfg="howToBuy.title" data-reveal>How to buy $DEANE</h2>
+        <p class="buy-copy" data-cfg="howToBuy.copy" data-reveal>Never bought a meme coin? Four steps, about five minutes. No wallet connection needed to read this page.</p>
+        <ol class="steps" data-steps><!-- built from config.howToBuy.steps --></ol>
+        <p class="warn" data-reveal><strong>Stay safe.</strong> <span data-cfg="howToBuy.warning">Deane will never DM you first, ask for your recovery phrase, or ask you to connect a wallet to “claim” anything.</span></p>
       </div>
 
-      <figure class="receipt" data-reveal>
+      <aside class="receipt" aria-labelledby="official-title" data-reveal>
         <div class="paper mono">
           <p class="r-head">*** <span data-cfg="brand.name">DEANE</span> ***</p>
-          <p class="r-sub">Order #000000<span data-preview-only> · preview</span></p>
-          <dl class="r-rows" data-receipt-rows><!-- built from config.token.rows --></dl>
-          <div class="r-row r-ca">
-            <span>Contract</span>
-            <span class="is-placeholder" data-contract-short>Not published yet</span>
-          </div>
+          <h3 class="r-title" id="official-title">Official details</h3>
+          <p class="r-sub" data-preview-only>Preview · placeholders until posted</p>
+          <dl class="r-rows" data-receipt-rows><!-- built from config --></dl>
+          <ul class="r-links" data-receipt-links aria-label="Verify"><!-- built from config.links --></ul>
           <p class="r-total"><span>Total</span><span>Vibes</span></p>
           <div class="r-barcode" aria-hidden="true"></div>
-          <p class="r-foot">Placeholder values · not final<br>Thank you for being here</p>
+          <p class="r-foot">Check the contract before every buy</p>
         </div>
-        <figcaption class="sr-only">Token details. Every value except the ticker is a placeholder.</figcaption>
-      </figure>
+      </aside>
     </div>
   </section>
 
@@ -236,10 +231,14 @@
       <p class="foot-tag">Deane is Deane.</p>
     </div>
     <nav class="foot-nav" aria-label="Footer">
-      <a href="#who">Who is Deane</a>
-      <a href="#token" data-cfg="brand.ticker">$DEANE</a>
-      <a href="#find">Find him</a>
+      <a href="#who">Who’s Deane</a>
+      <a href="#buy">How to buy</a>
+      <a href="#find">Community</a>
     </nav>
+    <div class="foot-links">
+      <p class="foot-h mono">Official links</p>
+      <ul data-foot-links><!-- built from config.links --></ul>
+    </div>
     <div class="foot-legal">
       <p data-preview-only data-cfg="footer.preview">Preview build. Token details and links are placeholders until they are officially posted here and on DEANE’s own channels. Nothing on this page is a contract address, a listing or a partnership.</p>
       <p data-cfg="footer.risk">Meme coins are extremely volatile and can go to zero. Only put in what you can afford to lose. Nothing here is financial advice.</p>
@@ -256,8 +255,9 @@
     <p class="notice-tag mono">Preview</p>
     <h2 class="notice-title" id="notice-title" data-cfg="notice.title">Not yet, bro.</h2>
     <p class="notice-body" id="notice-body" data-cfg="notice.body">The buy link hasn’t been posted, so this button doesn’t go anywhere yet. When it does, only trust the contract address shown on this site and DEANE’s official channels.</p>
-    <form method="dialog">
+    <form method="dialog" class="notice-actions">
       <button class="btn-buy" type="submit" data-cfg="notice.close" autofocus>Fine</button>
+      <a class="notice-guide" href="#buy" data-close-notice data-cfg="notice.guide">Read how to buy</a>
     </form>
   </div>
 </dialog>

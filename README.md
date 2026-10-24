@@ -21,7 +21,7 @@ Opening `index.html` directly in a browser also works.
 ```bash
 npm run check                                            # syntax check
 npm i -D playwright && npx playwright install chromium   # once
-npm test                                                 # 50 checks in Chromium
+npm test                                                 # 58 checks in Chromium
 ```
 
 `tests/qa.js` covers the following:
@@ -54,21 +54,39 @@ npm test                                                 # 50 checks in Chromium
 
 ## The page
 
-1. **Hero.** A giant wordmark that is always fitted edge to edge, with Deane peeking over it. His eyes follow the pointer and he talks when poked. A round BUY sticker sits on the wordmark. Below it are a contract-address bar and Chart / X / Telegram links.
-2. **Tape.** One tilted marquee strip.
-3. **Who is Deane?** He is not a dog, a frog, a cat in a hat, or a guy with a roadmap. Just Deane.
-4. **The boring part.** Token details as a till receipt, plus three lines on how to buy once it's live.
-5. **Find the others.** A "Have you seen Deane?" poster whose tear-off tabs are the community links.
-6. **Footer.** The preview note and risk warning.
+The page is built around one job: get a visitor from "who is this guy" to the
+correct, official place to buy, with nothing to second-guess on the way.
+
+1. **Hero.** Edge-to-edge wordmark with Deane peeking over it, and a BUY sticker. Below sits the contract bar (network, address and Copy) and links for How to buy, Chart, X and Telegram.
+2. **Who is Deane?** The meme in four crossed-out lines and one sentence.
+3. **How to buy $DEANE.** Four beginner steps:
+   - Step 3 has the contract and a Copy button inline.
+   - Step 4 has the Buy button inline.
+   - A safety warning sits under the steps.
+
+   Beside the steps, the **official details** receipt (sticky on desktop) lists ticker, network, contract (with Copy), the buy venue, supply and tax, plus Buy, Chart and Explorer links.
+4. **Find the others.** The "Have you seen Deane?" poster, whose tear-off tabs are the official X, Telegram and Chart links.
+5. **Footer.** Section links, the official links again, the preview note and the risk warning.
+
+The nav never hides, so **Buy $DEANE** stays one tap away on every screen, phones included.
 
 ## Going live
 
-Everything happens in `config.js`:
+Every official fact is set **once** in `config.js` and appears everywhere from there:
 
-1. **`links`.** Fill in `buy`, `chart`, `x` and `telegram` with official URLs (and handles). An empty URL stays a labelled placeholder button. A filled one becomes a real link that opens in a new tab.
-2. **`contract.address`.** Paste the verified address. The hero bar shows it in full, the receipt shows it shortened, and Copy starts working.
-3. **`token.rows`.** Replace each `[TBD]`. Any value still containing `[brackets]` renders grey as a visible placeholder.
-4. **`token.howTo`.** Replace `[chain]` with the real chain.
-5. **`preview: false`.** Buy buttons then go to `links.buy.url` instead of the notice, and the preview-only lines (the footer note and the poster note) disappear.
-6. In `index.html`, remove `<meta name="robots" content="noindex, nofollow">`.
-7. Optional: set `deane.src` to supplied artwork to replace the drawn Deane in both the hero and the poster. The poke-to-talk interaction keeps working.
+| Field | Shows up in |
+|---|---|
+| `network.name`, `network.nativeCoin` | hero bar, steps 1–2, receipt |
+| `contract.address` | hero bar, step 3, receipt (all with Copy) |
+| `links.buy` (`venue`, `url`) | every Buy button, step 4, receipt |
+| `links.chart`, `links.explorer` | hero bar, receipt, poster, footer |
+| `links.x`, `links.telegram` | hero bar, poster tabs, footer |
+| `token.rows` | receipt. Add `proof: 'https://…'` to show a "verify" link |
+
+Then set `preview: false` and remove the `noindex` robots meta tag in
+`index.html`. Any value still in `[brackets]` stays visibly grey, so a missed
+placeholder is obvious. The test suite includes a go-live rehearsal that fills
+every field with test values and checks the real buy link, copy, verify links
+and that no placeholder or preview label remains.
+
+Optional: set `deane.src` to supplied artwork to replace the drawn Deane.
