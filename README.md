@@ -90,3 +90,11 @@ every field with test values and checks the real buy link, copy, verify links
 and that no placeholder or preview label remains.
 
 Optional: set `deane.src` to supplied artwork to replace the drawn Deane.
+
+## Also in this repo: `doubletime/`
+
+A separate demo, unrelated to DEANE: a redesigned homepage for Doubletime
+(AI phone answering for local service businesses). It is self-contained, with its
+own styles, script, fonts and images, and shares nothing with the DEANE files or tests.
+With `npm start` running, open http://localhost:4321/doubletime/. Details are in
+`doubletime/REDESIGN-REPORT.md`.
